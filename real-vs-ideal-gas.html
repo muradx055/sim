@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Идеальный и реальный газ</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%22-80 -68 160 136%22 style=%22color:%23185FA5%22%3E%3Cg fill=%22none%22 stroke=%22currentColor%22 stroke-width=%222.6%22%3E%3Cellipse rx=%2272%22 ry=%2225%22/%3E%3Cellipse rx=%2272%22 ry=%2225%22 transform=%22rotate%2860%29%22/%3E%3Cellipse rx=%2272%22 ry=%2225%22 transform=%22rotate%28120%29%22/%3E%3C/g%3E%3Cg fill=%22currentColor%22%3E%3Ccircle cx=%2272%22 r=%226%22/%3E%3Ccircle cx=%2272%22 r=%226%22 transform=%22rotate%2860%29%22/%3E%3Ccircle cx=%2272%22 r=%226%22 transform=%22rotate%28120%29%22/%3E%3Ccircle r=%2231%22/%3E%3C/g%3E%3Ctext y=%229%22 text-anchor=%22middle%22 font-size=%2225%22 font-weight=%22600%22 fill=%22%23fff%22 font-family=%22Segoe UI,Roboto,Arial,sans-serif%22%3E%D0%9C%D0%A5%3C/text%3E%3C/svg%3E">
 <style>
   :root{
     --bg:#0d1326; --panel:#151d3a; --panel2:#1b2548; --ink:#eaf0ff; --muted:#9aa8d4;
@@ -13,6 +14,9 @@
   html,body{margin:0;background:var(--bg);color:var(--ink);
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
   .wrap{max-width:760px;margin:0 auto;padding:10px 10px 28px}
+  .ttl{display:flex;align-items:center;gap:10px;margin:4px 4px 8px}
+  .ttl h1{margin:0}
+  .logo{height:44px;width:auto;flex:none;color:#6ea8ff}
   h1{font-size:18px;margin:4px 4px 8px;font-weight:700}
   .sub{margin:0 4px 8px;color:var(--muted);font-size:13px;line-height:1.35}
   canvas{display:block;width:100%;border-radius:14px;background:var(--panel)}
@@ -43,7 +47,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Идеальный и реальный газ</h1>
+  <div class="ttl"><svg class="logo" viewBox="-80 -68 160 136" role="img" aria-label="Логотип: атом с монограммой МХ"><g fill="none" stroke="currentColor" stroke-width="2.6"><ellipse rx="72" ry="25"/><ellipse rx="72" ry="25" transform="rotate(60)"/><ellipse rx="72" ry="25" transform="rotate(120)"/></g><g fill="currentColor"><circle cx="72" r="6"/><circle cx="72" r="6" transform="rotate(60)"/><circle cx="72" r="6" transform="rotate(120)"/><circle r="31"/></g><text y="9" text-anchor="middle" font-size="25" font-weight="600" fill="#fff" font-family="Segoe UI,Roboto,Arial,sans-serif">МХ</text></svg><h1>Идеальный и реальный газ</h1></div>
 
   <canvas id="scene"></canvas>
 
