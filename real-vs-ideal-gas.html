@@ -42,6 +42,8 @@
   .sw input{width:22px;height:22px;accent-color:var(--real)}
   .legend{display:flex;gap:14px;flex-wrap:wrap;margin:8px 4px 0;font-size:12.5px;color:var(--muted)}
   .legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+  .stage{position:relative}
+  .pb{position:absolute;left:50%;top:10px;transform:translateX(-50%);width:36px;height:36px;min-width:0;flex:none;padding:0;border-radius:50%;font-size:12px;letter-spacing:-1px;background:rgba(27,37,72,.92)}
   .hint{margin:10px 4px 0;font-size:12.5px;color:var(--muted);line-height:1.4}
 </style>
 </head>
@@ -49,7 +51,7 @@
 <div class="wrap">
   <div class="ttl"><svg class="logo" viewBox="-80 -68 160 136" role="img" aria-label="Логотип: атом с монограммой МХ"><g fill="none" stroke="currentColor" stroke-width="2.6"><ellipse rx="72" ry="25"/><ellipse rx="72" ry="25" transform="rotate(60)"/><ellipse rx="72" ry="25" transform="rotate(120)"/></g><g fill="currentColor"><circle cx="72" r="6"/><circle cx="72" r="6" transform="rotate(60)"/><circle cx="72" r="6" transform="rotate(120)"/><circle r="31"/></g><text y="9" text-anchor="middle" font-size="25" font-weight="600" fill="#fff" font-family="Segoe UI,Roboto,Arial,sans-serif">МХ</text></svg><h1>Идеальный и реальный газ</h1></div>
 
-  <canvas id="scene"></canvas>
+  <div class="stage"><canvas id="scene"></canvas><button id="bPause" class="pb" aria-label="Пауза">❚❚</button></div>
 
   <div class="panel" style="margin-top:8px">
     <div class="ctl"><label>Температура <b id="vT"></b></label>
@@ -65,16 +67,9 @@
   <canvas id="chart" style="margin-top:10px"></canvas>
 
   <div class="panel">
-    <div class="row">
-      <button id="bDilute">Разреженный газ</button>
-      <button id="bSqueeze">Сильное сжатие</button>
-      <button id="bCool">Охлаждение</button>
-    </div>
-    <label class="sw"><input type="checkbox" id="cAttr" checked>Притяжение между молекулами реального газа</label>
     <div class="ctl"><label>Скорость показа <b id="vS"></b></label>
       <input type="range" id="sS" min="0.3" max="3" step="0.1" value="1.5"></div>
     <div class="row">
-      <button id="bPause">Пауза</button>
       <button id="bReset">Сначала</button>
     </div>
   </div>
@@ -377,17 +372,12 @@ function syncLabels(){
   $('vN').textContent=state.nTarget;
   $('vS').textContent=state.speed.toFixed(1)+'×';
 }
-function setSliders(){ $('sT').value=state.T; $('sV').value=state.Ltarget; $('sN').value=state.nTarget; $('sS').value=state.speed; $('cAttr').checked=state.attr; syncLabels(); }
+function setSliders(){ $('sT').value=state.T; $('sV').value=state.Ltarget; $('sN').value=state.nTarget; $('sS').value=state.speed; syncLabels(); }
 $('sT').addEventListener('input',function(){ state.T=+this.value; syncLabels(); });
 $('sV').addEventListener('input',function(){ state.Ltarget=+this.value; syncLabels(); });
 $('sN').addEventListener('input',function(){ state.nTarget=+this.value; syncLabels(); });
 $('sS').addEventListener('input',function(){ state.speed=+this.value; syncLabels(); });
-$('cAttr').addEventListener('change',function(){ state.attr=this.checked; real.dirty=true; });
-function preset(T,L,N){ state.T=T; state.Ltarget=L; state.nTarget=N; setSliders(); }
-$('bDilute').addEventListener('click',function(){ preset(450,24,30); });
-$('bSqueeze').addEventListener('click',function(){ preset(450,8,90); });
-$('bCool').addEventListener('click',function(){ preset(150,20,60); });
-$('bPause').addEventListener('click',function(){ state.paused=!state.paused; this.textContent=state.paused?'Продолжить':'Пауза'; this.classList.toggle('on',state.paused); });
+$('bPause').addEventListener('click',function(){ state.paused=!state.paused; this.textContent=state.paused?'▶':'❚❚'; this.setAttribute('aria-label',state.paused?'Продолжить':'Пауза'); this.classList.toggle('on',state.paused); });
 $('bReset').addEventListener('click',function(){ resetAll(); });
 window.addEventListener('resize',function(){ layout(); });
 window.addEventListener('orientationchange',function(){ setTimeout(layout,200); });
