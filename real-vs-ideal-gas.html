@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Идеальный и реальный газ</title>
+<style>
+  :root{
+    --bg:#0d1326; --panel:#151d3a; --panel2:#1b2548; --ink:#eaf0ff; --muted:#9aa8d4;
+    --ideal:#4cc9f0; --real:#ff9e4a; --line:#2a3566; --accent:#7c8cff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;}
+  .wrap{max-width:760px;margin:0 auto;padding:10px 10px 28px}
+  h1{font-size:18px;margin:4px 4px 8px;font-weight:700}
+  .sub{margin:0 4px 8px;color:var(--muted);font-size:13px;line-height:1.35}
+  canvas{display:block;width:100%;border-radius:14px;background:var(--panel)}
+  #msg{margin:10px 0 0;padding:11px 13px;border-radius:12px;background:var(--panel2);
+    font-size:14.5px;line-height:1.4;min-height:3.6em;border-left:4px solid var(--accent)}
+  #msg b{color:#fff}
+  .panel{margin-top:10px;padding:12px 14px 6px;background:var(--panel);border-radius:14px}
+  .ctl{margin:0 0 12px}
+  .ctl label{display:flex;justify-content:space-between;font-size:14px;margin-bottom:5px;color:var(--ink)}
+  .ctl label b{color:#fff;font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;height:34px;margin:0;background:transparent;-webkit-appearance:none;appearance:none}
+  input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:5px;background:linear-gradient(90deg,#2d3a73,#4a5bb8)}
+  input[type=range]::-moz-range-track{height:8px;border-radius:5px;background:linear-gradient(90deg,#2d3a73,#4a5bb8)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;margin-top:-11px;border-radius:50%;
+    background:#fff;border:4px solid var(--accent);box-shadow:0 1px 6px rgba(0,0,0,.5)}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:4px solid var(--accent)}
+  .row{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 12px}
+  button{flex:1 1 auto;min-width:96px;padding:11px 12px;font-size:14px;font-weight:600;color:var(--ink);
+    background:var(--panel2);border:1px solid var(--line);border-radius:11px;cursor:pointer}
+  button:active{background:#26336a}
+  button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .sw{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:14px}
+  .sw input{width:22px;height:22px;accent-color:var(--real)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:8px 4px 0;font-size:12.5px;color:var(--muted)}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+  .hint{margin:10px 4px 0;font-size:12.5px;color:var(--muted);line-height:1.4}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Идеальный и реальный газ</h1>
+
+  <canvas id="scene"></canvas>
+
+  <div class="panel" style="margin-top:8px">
+    <div class="ctl"><label>Температура <b id="vT"></b></label>
+      <input type="range" id="sT" min="100" max="600" step="5" value="300"></div>
+    <div class="ctl"><label>Объём (поршень) <b id="vV"></b></label>
+      <input type="range" id="sV" min="8" max="24" step="0.25" value="16"></div>
+    <div class="ctl"><label>Число молекул в каждой камере <b id="vN"></b></label>
+      <input type="range" id="sN" min="10" max="100" step="1" value="50"></div>
+  </div>
+
+  <div id="msg"></div>
+
+  <canvas id="chart" style="margin-top:10px"></canvas>
+
+  <div class="panel">
+    <div class="row">
+      <button id="bDilute">Разреженный газ</button>
+      <button id="bSqueeze">Сильное сжатие</button>
+      <button id="bCool">Охлаждение</button>
+    </div>
+    <label class="sw"><input type="checkbox" id="cAttr" checked>Притяжение между молекулами реального газа</label>
+    <div class="ctl"><label>Скорость показа <b id="vS"></b></label>
+      <input type="range" id="sS" min="0.3" max="3" step="0.1" value="1.5"></div>
+    <div class="row">
+      <button id="bPause">Пауза</button>
+      <button id="bReset">Сначала</button>
+    </div>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--ideal)"></i>идеальный газ</span>
+    <span><i style="background:var(--real)"></i>реальный газ</span>
+    <span>цвет молекулы: синий — медленная, красный — быстрая</span>
+  </div>
+  <p class="hint">Температура поддерживается постоянной при любых изменениях объёма. Давление показано в условных единицах (кПа): чтобы сравнивать камеры между собой, а не по таблицам. Идеальный газ: молекулы — точки, они не взаимодействуют и только отскакивают от стенок. Реальный газ: у молекул есть размер, на расстоянии они притягиваются, вплотную отталкиваются.</p>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- параметры модели (единицы: диаметр молекулы σ = 1, энергия ε = 1, масса m = 1) ---------- */
+var W = 24;            // ширина камеры
+var LMAX = 24;         // максимальная высота газа (поршень вверху)
+var NMAX = 100;        // максимум молекул
+var DT = 0.008;        // шаг интегрирования
+var T_DIV = 400;       // T_модель = T[К] / 400 (при 300 К это 0.75 ε)
+var K_P = 1000;        // перевод давления модели в «кПа»
+var PISTON_V = 0.5;    // скорость поршня
+
+var state = { T:300, Ltarget:16, nTarget:50, attr:true, speed:1.5, paused:false };
+var Lcur = state.Ltarget, vL = 0;
+
+function makeGas(real){
+  return { real:real, n:0,
+    x:new Float64Array(NMAX), y:new Float64Array(NMAX),
+    vx:new Float64Array(NMAX), vy:new Float64Array(NMAX),
+    fx:new Float64Array(NMAX), fy:new Float64Array(NMAX),
+    pairs:new Int16Array(NMAX*16), nPairs:0, vir:0, dirty:true,
+    pSmooth:0, pAcc:0, pCnt:0, imp:0, tImp:0, pWall:0 };
+}
+var ideal = makeGas(false), real = makeGas(true);
+
+function gauss(){ var u=0,v=0; while(u===0)u=Math.random(); v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+function Ts(){ return state.T/T_DIV; }
+
+/* добавление молекулы: в обеих камерах одно и то же положение и скорость */
+function addParticle(){
+  if(real.n>=NMAX) return false;
+  var tries=0, px=0, py=0, ok=false;
+  while(tries++<300){
+    px = 0.5 + Math.random()*(W-1);
+    py = 0.5 + Math.random()*(Math.max(Lcur,2)-1);
+    ok=true;
+    for(var i=0;i<real.n;i++){
+      var dx=real.x[i]-px, dy=real.y[i]-py;
+      if(dx*dx+dy*dy<0.95*0.95){ ok=false; break; }
+    }
+    if(ok) break;
+  }
+  if(!ok) return false;
+  var s=Math.sqrt(Ts()), vx=gauss()*s, vy=gauss()*s, k=real.n;
+  [ideal,real].forEach(function(g){ g.x[k]=px; g.y[k]=py; g.vx[k]=vx; g.vy[k]=vy; g.n=k+1; g.dirty=true; });
+  return true;
+}
+function removeParticle(){
+  if(real.n<=0) return;
+  ideal.n--; real.n--; real.dirty=true;
+}
+function resetAll(){
+  ideal.n=0; real.n=0;
+  Lcur=state.Ltarget; vL=0;
+  var want=state.nTarget, guard=0;
+  while(real.n<want && guard++<2000) addParticle();
+  [ideal,real].forEach(function(g){ g.pSmooth=0; g.imp=0; g.tImp=0; g.dirty=true; });
+  computePressures();
+  ideal.pSmooth=ideal.pAcc/Math.max(ideal.pCnt,1); real.pSmooth=real.pAcc/Math.max(real.pCnt,1);
+  ideal.pAcc=real.pAcc=0; ideal.pCnt=real.pCnt=0;
+  hist.length=0;
+}
+
+/* ---------- силы (реальный газ): потенциал Леннард-Джонса, без притяжения — только отталкивание ---------- */
+function computeForces(g){
+  var n=g.n, x=g.x, y=g.y, fx=g.fx, fy=g.fy, i, j;
+  for(i=0;i<n;i++){ fx[i]=0; fy[i]=0; }
+  var rc2 = state.attr ? 6.25 : 1.2599;   // 2.5σ  или  2^(1/6)σ (только отталкивание)
+  var vir=0, np=0, pr=g.pairs, maxPairs=pr.length-2;
+  for(i=0;i<n-1;i++){
+    var xi=x[i], yi=y[i];
+    for(j=i+1;j<n;j++){
+      var dx=xi-x[j], dy=yi-y[j], r2=dx*dx+dy*dy;
+      if(r2<rc2){
+        if(r2<1.69 && np<maxPairs){ pr[np++]=i; pr[np++]=j; }
+        var re=r2<0.3?0.3:r2, ir2=1/re, s6=ir2*ir2*ir2;
+        var f=24*(2*s6*s6-s6)*ir2;           // F/r
+        if(f>400) f=400;
+        var fxx=f*dx, fyy=f*dy;
+        fx[i]+=fxx; fy[i]+=fyy; fx[j]-=fxx; fy[j]-=fyy;
+        vir+=f*r2;                           // r·F
+      }
+    }
+  }
+  g.vir=vir; g.nPairs=np;
+}
+
+/* ---------- один шаг ---------- */
+function stepGas(g, wallVel){
+  var n=g.n, x=g.x, y=g.y, vx=g.vx, vy=g.vy, i, L=Lcur;
+  if(n===0) return;
+  if(g.real){
+    if(g.dirty){ computeForces(g); g.dirty=false; }
+    var hd=0.5*DT, fx=g.fx, fy=g.fy;
+    for(i=0;i<n;i++){ vx[i]+=hd*fx[i]; vy[i]+=hd*fy[i]; }
+  }
+  var imp=0, sT=Math.sqrt(Ts()), thermal=!g.real;
+  /* у идеального газа молекулы не сталкиваются друг с другом, поэтому тепловое равновесие
+     ему обеспечивают стенки: при ударе молекула с вероятностью 25 % «забывает» направление
+     и получает скорость, соответствующую температуре стенки */
+  function rayleigh(){ return sT*Math.sqrt(-2*Math.log(1-Math.random())); }
+  for(i=0;i<n;i++){
+    var xi=x[i]+vx[i]*DT, yi=y[i]+vy[i]*DT, old;
+    if(xi<0){ xi=-xi; old=vx[i]; vx[i]=-old;
+      if(thermal && Math.random()<0.25){ vx[i]=rayleigh(); vy[i]=gauss()*sT; }
+      imp+=Math.abs(vx[i]-old); }
+    else if(xi>W){ xi=2*W-xi; old=vx[i]; vx[i]=-old;
+      if(thermal && Math.random()<0.25){ vx[i]=-rayleigh(); vy[i]=gauss()*sT; }
+      imp+=Math.abs(vx[i]-old); }
+    if(yi<0){ yi=-yi; old=vy[i]; vy[i]=-old;
+      if(thermal && Math.random()<0.25){ vy[i]=rayleigh(); vx[i]=gauss()*sT; }
+      imp+=Math.abs(vy[i]-old); }
+    if(yi>L){
+      old=vy[i]; vy[i]=-old+2*wallVel;           // отражение от движущегося поршня
+      if(thermal && Math.random()<0.25){ vy[i]=wallVel-rayleigh(); vx[i]=gauss()*sT; }
+      imp+=Math.abs(vy[i]-old); yi=2*L-yi;
+    }
+    if(xi<0)xi=0; else if(xi>W)xi=W;
+    if(yi<0)yi=0; else if(yi>L)yi=L;
+    x[i]=xi; y[i]=yi;
+  }
+  g.imp+=imp;
+  if(g.real){
+    computeForces(g);
+    var hd2=0.5*DT, fx2=g.fx, fy2=g.fy;
+    for(i=0;i<n;i++){ vx[i]+=hd2*fx2[i]; vy[i]+=hd2*fy2[i]; }
+  }
+  /* кинетическая энергия, давление, термостат */
+  var ke=0;
+  for(i=0;i<n;i++){ var v2=vx[i]*vx[i]+vy[i]*vy[i]; if(v2>36){ var sc=6/Math.sqrt(v2); vx[i]*=sc; vy[i]*=sc; v2=36; } ke+=0.5*v2; }
+  var A=W*L;
+  var p = (ke + (g.real?0.5*g.vir:0))/A;          // p·A = ΣKE + ½ Σ r·F  (2D)
+  g.pAcc+=p; g.pCnt++;
+  var Tin=ke/n, Tt=Ts();
+  var lam=Math.sqrt(1+(DT/0.4)*(Tt/Math.max(Tin,1e-6)-1));
+  if(lam>1.05)lam=1.05; else if(lam<0.95)lam=0.95;
+  for(i=0;i<n;i++){ vx[i]*=lam; vy[i]*=lam; }
+}
+function stepAll(){
+  var diff=state.Ltarget-Lcur, mv=PISTON_V*DT;
+  if(Math.abs(diff)<=mv){ Lcur=state.Ltarget; vL=0; }
+  else { vL=diff>0?PISTON_V:-PISTON_V; Lcur+=vL*DT; }
+  stepGas(ideal, vL); stepGas(real, vL);
+  ideal.tImp+=DT; real.tImp+=DT;
+}
+function computePressures(){ stepAll(); }
+
+/* ---------- отрисовка ---------- */
+var scene=document.getElementById('scene'), sctx=scene.getContext('2d');
+var chart=document.getElementById('chart'), cctx=chart.getContext('2d');
+var dpr=1, cssW=0, L1={};
+var COL_IDEAL='#4cc9f0', COL_REAL='#ff9e4a';
+var palette=[]; (function(){ for(var i=0;i<48;i++){ var f=i/47; palette.push('hsl('+Math.round(235-235*f)+',95%,'+Math.round(58+4*f)+'%)'); } })();
+var pmax=800, hist=[];
+
+function layout(){
+  dpr=Math.min(window.devicePixelRatio||1,3);
+  cssW=scene.parentNode.clientWidth;
+  var gap=10, colW=(cssW-gap)/2, padX=6, cw=colW-2*padX, s=cw/(W+1);
+  var r=0;
+  var titleH=46, readH=54, chTop=titleH+readH, chH=(LMAX+1)*s, H=chTop+chH+10;
+  L1={gap:gap,colW:colW,padX:padX,cw:cw,s:s,r:r,titleH:titleH,readH:readH,chTop:chTop,chH:chH,H:H};
+  scene.style.height=H+'px'; scene.width=Math.round(cssW*dpr); scene.height=Math.round(H*dpr);
+  var ch=150; chart.style.height=ch+'px'; chart.width=Math.round(cssW*dpr); chart.height=Math.round(ch*dpr);
+}
+
+function gauge(c,cx,cy,r,p,col){
+  c.lineCap='round';
+  c.lineWidth=9; c.strokeStyle='#26325f';
+  c.beginPath(); c.arc(cx,cy,r,Math.PI,2*Math.PI); c.stroke();
+  var f=Math.min(1,Math.sqrt(Math.max(p,0)/pmax));
+  if(f>0.002){ c.strokeStyle=col; c.beginPath(); c.arc(cx,cy,r,Math.PI,Math.PI+f*Math.PI); c.stroke(); }
+  c.fillStyle='#9aa8d4'; c.font='9.5px system-ui,sans-serif'; c.textAlign='center'; c.textBaseline='middle';
+  for(var k=0;k<=4;k++){
+    var a=Math.PI+(k/4)*Math.PI, val=pmax*(k/4)*(k/4);
+    var tx=cx+Math.cos(a)*(r+13), ty=cy+Math.sin(a)*(r+13);
+    c.fillText(String(Math.round(val)),tx,ty);
+  }
+  var a2=Math.PI+f*Math.PI;
+  c.strokeStyle='#fff'; c.lineWidth=3;
+  c.beginPath(); c.moveTo(cx,cy); c.lineTo(cx+Math.cos(a2)*(r-12),cy+Math.sin(a2)*(r-12)); c.stroke();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx,cy,5,0,2*Math.PI); c.fill();
+  c.fillStyle=col; c.font='bold 19px system-ui,sans-serif'; c.textBaseline='alphabetic';
+  c.fillText(Math.round(p*K_P)+' кПа',cx,cy+27);
+}
+
+function drawChamber(c,g,col,idx,title,sub){
+  var colX=idx*(L1.colW+L1.gap), cx=colX+L1.colW/2, s=L1.s, xl=colX+L1.padX, yb=L1.chTop+L1.chH;
+  c.textAlign='center'; c.textBaseline='alphabetic';
+  c.fillStyle=col; c.font='bold 16px system-ui,sans-serif'; c.fillText(title,cx,20);
+  c.fillStyle='#9aa8d4'; c.font='11.5px system-ui,sans-serif'; c.fillText(sub,cx,37);
+  c.fillStyle=col; c.font='bold 24px system-ui,sans-serif'; c.textAlign='center';
+  c.fillText(Math.round(g.pSmooth*K_P)+' кПа',cx,L1.titleH+26);
+  var innerW=(W+1)*s, lidY=yb-(Lcur+1)*s;
+  c.fillStyle='#070b18'; c.fillRect(xl,L1.chTop,innerW,L1.chH);
+  c.fillStyle='#0b1430'; c.fillRect(xl,lidY,innerW,yb-lidY);
+  /* стенки */
+  c.fillStyle='#55639c'; c.fillRect(xl-4,L1.chTop,4,L1.chH+4); c.fillRect(xl+innerW,L1.chTop,4,L1.chH+4); c.fillRect(xl-4,yb,innerW+8,5);
+  /* поршень */
+  c.fillStyle='#8c98c8'; c.fillRect(xl+innerW/2-3,L1.chTop-4,6,Math.max(lidY-L1.chTop+4,0));
+  var gr=c.createLinearGradient(0,lidY-9,0,lidY); gr.addColorStop(0,'#c9d2f5'); gr.addColorStop(1,'#7f8bbd');
+  c.fillStyle=gr; c.fillRect(xl,lidY-9,innerW,9);
+  /* связи (капли при притяжении) */
+  if(g.real && state.attr && g.nPairs){
+    c.strokeStyle='rgba(255,210,150,0.38)'; c.lineWidth=Math.max(1,s*0.16); c.beginPath();
+    for(var q=0;q<g.nPairs;q+=2){
+      var a=g.pairs[q], b=g.pairs[q+1];
+      c.moveTo(xl+(g.x[a]+0.5)*s, yb-(g.y[a]+0.5)*s); c.lineTo(xl+(g.x[b]+0.5)*s, yb-(g.y[b]+0.5)*s);
+    }
+    c.stroke();
+  }
+  /* молекулы */
+  var rad = g.real ? Math.max(0.5*s,2.4) : Math.max(0.17*s,1.7), Tt=Ts();
+  for(var i=0;i<g.n;i++){
+    var e=0.5*(g.vx[i]*g.vx[i]+g.vy[i]*g.vy[i])/Tt, pi=Math.min(47,Math.max(0,Math.round(e/3.5*47)));
+    c.fillStyle=palette[pi];
+    c.beginPath(); c.arc(xl+(g.x[i]+0.5)*s, yb-(g.y[i]+0.5)*s, rad, 0, 6.2832); c.fill();
+    if(g.real){ c.strokeStyle='rgba(255,255,255,0.28)'; c.lineWidth=1; c.stroke(); }
+  }
+}
+
+function draw(){
+  var c=sctx; c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,cssW,L1.H);
+  /* общая шкала манометров с запасом */
+  drawChamber(c,ideal,COL_IDEAL,0,'Идеальный газ','молекулы — точки');
+  drawChamber(c,real,COL_REAL,1,'Реальный газ',state.attr?'размер и притяжение':'только размер');
+  var pI=ideal.pSmooth*K_P, pR=real.pSmooth*K_P;
+  if(pI>0.5){
+    var d=(pR/pI-1)*100, txt=(d>=0?'+':'−')+Math.abs(d).toFixed(0)+' % к идеальному';
+    c.textAlign='center'; c.font='bold 12.5px system-ui,sans-serif';
+    c.fillStyle=Math.abs(d)<4?'#9aa8d4':(d<0?'#7fd1ff':'#ff8a8a');
+    c.fillText(txt,L1.colW+L1.gap+L1.colW/2, L1.titleH+44);
+  }
+}
+
+function drawChart(){
+  var c=cctx, w=cssW, h=150; c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,w,h);
+  var ml=44, mr=10, mt=22, mb=18, pw=w-ml-mr, ph=h-mt-mb;
+  c.fillStyle='#9aa8d4'; c.font='11.5px system-ui,sans-serif'; c.textAlign='left'; c.fillText('Давление, кПа',8,14);
+  var mx=1; for(var i=0;i<hist.length;i++){ mx=Math.max(mx,hist[i][0],hist[i][1]); }
+  var nice=[10,20,50,100,200,500,1000,2000,5000,10000,20000]; var ymax=nice[nice.length-1];
+  for(var k=0;k<nice.length;k++){ if(nice[k]>=mx*1.1){ ymax=nice[k]; break; } }
+  c.strokeStyle='#26325f'; c.lineWidth=1; c.fillStyle='#7886b8'; c.textAlign='right'; c.textBaseline='middle';
+  for(var g=0;g<=2;g++){
+    var yy=mt+ph-(g/2)*ph; c.beginPath(); c.moveTo(ml,yy); c.lineTo(ml+pw,yy); c.stroke();
+    c.fillText(String(Math.round(ymax*g/2)),ml-6,yy);
+  }
+  c.textAlign='center'; c.textBaseline='alphabetic'; c.fillText('время →',ml+pw/2,h-3);
+  var maxPts=300;
+  function line(idx,col){
+    if(hist.length<2) return;
+    c.strokeStyle=col; c.lineWidth=2.4; c.lineJoin='round'; c.beginPath();
+    for(var i=0;i<hist.length;i++){
+      var x=ml+pw*(i/(maxPts-1)), y=mt+ph-Math.min(1,hist[i][idx]/ymax)*ph;
+      if(i===0)c.moveTo(x,y); else c.lineTo(x,y);
+    }
+    c.stroke();
+  }
+  line(0,COL_IDEAL); line(1,COL_REAL);
+}
+
+/* ---------- пояснение ---------- */
+var msgEl=document.getElementById('msg'), lastMsgT=0;
+function updateMsg(now){
+  if(now-lastMsgT<500) return; lastMsgT=now;
+  var pI=ideal.pSmooth, pR=real.pSmooth, html;
+  if(pI<=0){ msgEl.innerHTML=''; return; }
+  var d=(pR/pI-1)*100, ad=Math.abs(d).toFixed(0), dens=real.n/(W*Lcur);
+  var bonds=real.nPairs/2/Math.max(real.n,1);
+  if(state.attr && bonds>1.3 && Ts()<0.55){
+    html='<b>Молекулы реального газа слипаются в капли</b> — газ начинает превращаться в жидкость. Идеальный газ так не может: у него нет притяжения, поэтому он не конденсируется. Давление реального газа на '+ad+' % '+(d<0?'меньше':'больше')+'.';
+  } else if(Math.abs(d)<4){
+    html='<b>Давления почти одинаковы.</b> Молекул мало, они далеко друг от друга, поэтому собственный размер и притяжение почти не играют роли. Реальный газ ведёт себя как идеальный.';
+  } else if(d<0){
+    html='<b>У реального газа давление на '+ad+' % меньше.</b> Молекулы притягиваются друг к другу и слабее ударяют по стенкам.';
+  } else {
+    html='<b>У реального газа давление на '+ad+' % больше.</b> У молекул есть собственный объём, свободного места меньше, поэтому они чаще ударяют по стенкам.';
+  }
+  msgEl.innerHTML=html;
+}
+
+/* ---------- управление ---------- */
+function $(id){ return document.getElementById(id); }
+function syncLabels(){
+  $('vT').textContent=state.T+' К';
+  $('vV').textContent=Math.round(state.Ltarget/LMAX*100)+' %';
+  $('vN').textContent=state.nTarget;
+  $('vS').textContent=state.speed.toFixed(1)+'×';
+}
+function setSliders(){ $('sT').value=state.T; $('sV').value=state.Ltarget; $('sN').value=state.nTarget; $('sS').value=state.speed; $('cAttr').checked=state.attr; syncLabels(); }
+$('sT').addEventListener('input',function(){ state.T=+this.value; syncLabels(); });
+$('sV').addEventListener('input',function(){ state.Ltarget=+this.value; syncLabels(); });
+$('sN').addEventListener('input',function(){ state.nTarget=+this.value; syncLabels(); });
+$('sS').addEventListener('input',function(){ state.speed=+this.value; syncLabels(); });
+$('cAttr').addEventListener('change',function(){ state.attr=this.checked; real.dirty=true; });
+function preset(T,L,N){ state.T=T; state.Ltarget=L; state.nTarget=N; setSliders(); }
+$('bDilute').addEventListener('click',function(){ preset(450,24,30); });
+$('bSqueeze').addEventListener('click',function(){ preset(450,8,90); });
+$('bCool').addEventListener('click',function(){ preset(150,20,60); });
+$('bPause').addEventListener('click',function(){ state.paused=!state.paused; this.textContent=state.paused?'Продолжить':'Пауза'; this.classList.toggle('on',state.paused); });
+$('bReset').addEventListener('click',function(){ resetAll(); });
+window.addEventListener('resize',function(){ layout(); });
+window.addEventListener('orientationchange',function(){ setTimeout(layout,200); });
+
+/* ---------- главный цикл ---------- */
+var last=performance.now(), acc=0, tHist=0;
+function frame(now){
+  var dtR=Math.min(0.05,(now-last)/1000); last=now;
+  if(!state.paused){
+    acc+=dtR*1200*state.speed; var ns=Math.floor(acc); acc-=ns; if(ns>90)ns=90;
+    for(var i=0;i<ns;i++) stepAll();
+    if(real.n<state.nTarget){ addParticle(); } else if(real.n>state.nTarget){ removeParticle(); }
+    [ideal,real].forEach(function(g){
+      if(g.pCnt>0){ var m=g.pAcc/g.pCnt; g.pSmooth = g.pSmooth? g.pSmooth+(m-g.pSmooth)*0.12 : m; g.pAcc=0; g.pCnt=0; }
+    });
+    tHist+=dtR;
+    if(tHist>0.1){ tHist=0; hist.push([ideal.pSmooth*K_P,real.pSmooth*K_P]); if(hist.length>300)hist.shift(); }
+  }
+  draw(); drawChart(); updateMsg(now);
+  requestAnimationFrame(frame);
+}
+
+/* для проверки в тестах */
+window.__sim={ ideal:ideal, real:real, state:state, W:W, stepAll:stepAll, resetAll:resetAll,
+  getL:function(){return Lcur;}, setL:function(v){Lcur=v;state.Ltarget=v;} };
+
+layout(); setSliders(); resetAll();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
