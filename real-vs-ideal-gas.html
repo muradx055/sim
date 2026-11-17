@@ -96,7 +96,7 @@ var T_DIV = 400;       // T_модель = T[К] / 400 (при 300 К это 0.7
 var K_P = 1000;        // перевод давления модели в «кПа»
 var PISTON_V = 0.5;    // скорость поршня
 
-var state = { T:300, Ltarget:16, nTarget:50, attr:true, speed:1.5, paused:false, unit:'K' };
+var state = { T:300, Tset:300, Ltarget:16, nTarget:50, attr:true, speed:1.5, paused:false, unit:'K' };
 var Lcur = state.Ltarget, vL = 0;
 
 function makeGas(real){
@@ -383,13 +383,13 @@ function updateMsg(now){
 /* ---------- управление ---------- */
 function $(id){ return document.getElementById(id); }
 function syncLabels(){
-  $('vT').textContent=state.unit==='K' ? state.T+' К' : Math.round(state.T-273.15)+' °C';
+  $('vT').textContent=state.unit==='K' ? state.Tset+' К' : Math.round(state.Tset-273.15)+' °C';
   $('vV').textContent=Math.round(state.Ltarget/LMAX*100)+' %';
   $('vN').textContent=state.nTarget;
   $('vS').textContent=state.speed.toFixed(1)+'×';
 }
-function setSliders(){ $('sT').value=state.T; $('sV').value=state.Ltarget; $('sN').value=state.nTarget; $('sS').value=state.speed; syncLabels(); }
-$('sT').addEventListener('input',function(){ state.T=+this.value; syncLabels(); });
+function setSliders(){ $('sT').value=state.Tset; $('sV').value=state.Ltarget; $('sN').value=state.nTarget; $('sS').value=state.speed; syncLabels(); }
+$('sT').addEventListener('input',function(){ state.Tset=+this.value; syncLabels(); });
 $('vT').addEventListener('click',function(){ state.unit=state.unit==='K'?'C':'K'; syncLabels(); });
 $('vT').addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); this.click(); } });
 $('sV').addEventListener('input',function(){ state.Ltarget=+this.value; syncLabels(); });
@@ -405,6 +405,11 @@ var last=performance.now(), acc=0, tHist=0;
 function frame(now){
   var dtR=Math.min(0.05,(now-last)/1000); last=now;
   if(!state.paused){
+    /* температура следует за ползунком не мгновенно: плавно, с «инерцией» (около 1 с) */
+    if(state.T!==state.Tset){
+      var df=state.Tset-state.T, mvT=Math.max(Math.abs(df)*dtR/1.2, 20*dtR);
+      if(Math.abs(df)<=mvT) state.T=state.Tset; else state.T+=(df>0?mvT:-mvT);
+    }
     acc+=dtR*1200*state.speed; var ns=Math.floor(acc); acc-=ns; if(ns>90)ns=90;
     for(var i=0;i<ns;i++) stepAll();
     if(real.n<state.nTarget){ addParticle(); } else if(real.n>state.nTarget){ removeParticle(); }
