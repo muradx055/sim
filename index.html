@@ -16,6 +16,12 @@
   a.card:active{background:#1f2a55}
   a.card b{display:block;font-size:18px;margin-bottom:4px}
   a.card span{font-size:14px;color:#9aa8d4;line-height:1.35}
+  a.card.mine{position:relative;padding-right:64px}
+  a.card.mine::after{content:"ММ";position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;letter-spacing:-.5px;
+    color:#0d1326;background:linear-gradient(135deg,#ffd166,#ff9f43);box-shadow:0 0 0 3px rgba(255,209,102,.18)}
+  .logo{display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;text-align:center;font-size:9px;font-weight:800;
+    color:#0d1326;background:linear-gradient(135deg,#ffd166,#ff9f43);vertical-align:middle;margin-right:4px}
   .foot{margin-top:18px;font-size:13px;color:#7886b8}
 </style>
 </head>
@@ -23,12 +29,12 @@
 <div class="wrap">
   <h1>Симуляции по физике</h1>
   <p>Нажмите на название, чтобы открыть. Работает на телефоне: увеличивать можно двумя пальцами.</p>
-  <a class="card" href="konstruktor-davlenie.html"><b>Конструктор задач. Давление газа</b><span>Десять задач по лекции: решение собирается из плиток (Дано, СИ, формула, подстановка, расчёт) с проверкой каждого шага.</span></a>
+  <a class="card mine" href="konstruktor-davlenie.html"><b>Конструктор задач. Давление газа</b><span>Десять задач по лекции: решение собирается из плиток (Дано, СИ, формула, подстановка, расчёт) с проверкой каждого шага.</span></a>
   <a class="card" href="states-of-matter.html"><b>Агрегатное состояние вещества</b><span>Твёрдое тело, жидкость и газ: что происходит с молекулами при нагревании и охлаждении.</span></a>
   <a class="card" href="gas-properties.html"><b>Свойства газа</b><span>Как связаны давление, объём и температура газа.</span></a>
   <a class="card" href="diffusion.html"><b>Диффузия</b><span>Как частицы перемешиваются сами.</span></a>
-  <a class="card" href="real-vs-ideal-gas.html"><b>Идеальный и реальный газ</b><span>Две камеры с одинаковыми условиями: чем отличается давление.</span></a>
-  <div class="foot">Симуляции «Агрегатное состояние вещества», «Свойства газа» и «Диффузия» — PhET Interactive Simulations, Университет Колорадо в Боулдере.<br>«Конструктор задач. Давление газа» — авторская разработка Мурада Магомедова.</div>
+  <a class="card mine" href="real-vs-ideal-gas.html"><b>Идеальный и реальный газ</b><span>Две камеры с одинаковыми условиями: чем отличается давление.</span></a>
+  <div class="foot">Симуляции «Агрегатное состояние вещества», «Свойства газа» и «Диффузия» — PhET Interactive Simulations, Университет Колорадо в Боулдере.<br><span class="logo">ММ</span>— авторская разработка Мурада Магомедова.</div>
 </div>
 </body>
 </html>
