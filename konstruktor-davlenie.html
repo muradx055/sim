@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Конструктор задач. Давление газа</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  [hidden]{display:none!important}
+  body{margin:0;min-height:100vh;background:#0d1326;color:#eaf0ff;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:620px;padding:16px 14px 40px}
+  a.back,button.back{color:#8fb0ff;text-decoration:none;font-size:15px;background:none;border:none;padding:4px 0;cursor:pointer;font-family:inherit}
+  h1{font-size:22px;margin:8px 2px 4px}
+  .how{margin:0 2px 12px;color:#9aa8d4;font-size:14px;line-height:1.45}
+  /* меню */
+  .mi{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin:0 0 10px;padding:12px 14px;border-radius:14px;
+    background:#151d3a;border:1px solid #2a3566;color:#fff;font-family:inherit;cursor:pointer}
+  .mi:active{background:#1f2a55}
+  .mi .no{flex:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;color:#0d1326}
+  .mi .tt{flex:1;min-width:0}
+  .mi .tt b{display:block;font-size:16px;margin-bottom:2px}
+  .mi .tt span{font-size:13px;color:#9aa8d4}
+  .mi .stars{flex:none;font-size:16px;color:#ffd166;letter-spacing:1px}
+  .memo{background:#151d3a;border:1px solid #2a3566;border-radius:14px;padding:10px 14px;margin-bottom:12px}
+  .memo summary{cursor:pointer;font-size:16px;min-height:28px}
+  .memo .mb{margin-top:8px;font-size:15px;line-height:1.55;color:#dbe4ff}
+  .memo .mb p{margin:4px 0}
+  /* задача */
+  .cond{background:#151d3a;border:1px solid #2a3566;border-radius:14px;padding:12px 14px;font-size:18px;line-height:1.5;margin-bottom:12px}
+  .cond .lab{font-size:12px;color:#8fb0ff;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+  .hl{color:#ffd166;font-weight:600}
+  .hq{color:#9df0b8;font-weight:600}
+  .step{background:#18284f;border:1px solid #4a68c4;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:16px;line-height:1.45}
+  .step b{color:#fff}
+  .bar{display:flex;gap:5px;margin-bottom:8px}
+  .bar i{flex:1;height:6px;border-radius:3px;background:#2a3566}
+  .bar i.on{background:#5b82ff}
+  .bar i.done{background:#2ecc71}
+  .nb{background:#121a35;border:1px solid #2a3566;border-radius:14px;padding:6px 14px 10px}
+  .blk{padding:10px 0;border-bottom:1px dashed #2a3566}
+  .blk:last-child{border-bottom:none}
+  .blk .lbl{font-size:14px;color:#8fb0ff;margin-bottom:8px;font-weight:600}
+  .row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:6px 0;font-size:22px}
+  .st{font-size:22px;white-space:nowrap}
+  .slot{min-width:54px;height:52px;padding:0 10px;border:2px dashed #5666a8;border-radius:10px;display:inline-flex;
+    align-items:center;justify-content:center;font-size:21px;color:#eaf0ff;background:#0d1326;transition:background .15s,border-color .15s;white-space:nowrap}
+  .slot.k-letter{border-color:#4f7bff}
+  .slot.k-value{border-color:#c9972b}
+  .slot.k-unit{border-color:#9a66e0}
+  .slot.k-op{border-color:#8794c4;min-width:48px}
+  .slot.hover{background:#2a2410;border-color:#ffd166;transform:scale(1.06)}
+  .slot.ok{border-style:solid;border-color:#2e8f55;background:#12351f;color:#c9f5d9}
+  .slot.bad{border-color:#e0556a;background:#3a1a1f;animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .frac{display:inline-flex;flex-direction:column;align-items:center;gap:4px}
+  .frac .fr{display:flex;gap:6px;align-items:center}
+  .frac .fbar{height:3px;width:100%;background:#eaf0ff;border-radius:2px}
+  .num-in{width:130px;height:52px;font-size:21px;padding:0 10px;border-radius:10px;border:2px solid #c9972b;background:#0d1326;color:#fff;font-family:inherit}
+  .num-in.ok{border-color:#2e8f55;background:#12351f;color:#c9f5d9}
+  .num-in.bad{border-color:#e0556a;background:#3a1a1f;animation:shake .4s}
+  .chk{height:52px;padding:0 16px;border-radius:10px;border:1px solid #5b82ff;background:#2f55c8;color:#fff;font-size:17px;font-family:inherit;cursor:pointer}
+  .chk:disabled{opacity:.4}
+  #panel{position:fixed;left:0;right:0;bottom:0;background:rgba(13,19,38,.97);border-top:1px solid #2a3566;
+    padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:20}
+  #panel .in{width:100%;max-width:620px}
+  .fb{border-radius:10px;padding:9px 12px;font-size:16px;line-height:1.45;margin-top:10px;display:none}
+  .fb.ok{display:block;background:#12351f;border:1px solid #2e8f55;color:#c9f5d9}
+  .fb.bad{display:block;background:#3a1a1f;border:1px solid #b34a58;color:#ffd5da}
+  .fb.info{display:block;background:#18284f;border:1px solid #4a68c4;color:#dbe4ff}
+  .fb.hint{display:block;background:#2a2410;border:1px solid #8a7425;color:#ffeaa0}
+  .bank{display:flex;flex-direction:column;gap:6px;align-items:center;margin-bottom:8px}
+  .grp{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+  .note{font-size:12px;color:#9aa8d4;text-align:center}
+  .tile{min-width:46px;height:44px;padding:0 10px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;
+    font-size:19px;color:#fff;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+    box-shadow:0 2px 0 rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18)}
+  .tile.k-letter{background:#2f55c8}
+  .tile.k-value{background:#8a6a12}
+  .tile.k-unit{background:#6b3fb0}
+  .tile.k-op{background:#4a5578}
+  .tile.sel{outline:3px solid #ffd166}
+  .tile.lift{opacity:.35}
+  .tile.pulse{animation:pulse .7s 4;outline:3px solid #9df0b8}
+  @keyframes pulse{50%{transform:scale(1.18)}}
+  .tile.ghost{position:fixed;transform:translate(-50%,-50%) scale(1.15);pointer-events:none;z-index:60;box-shadow:0 8px 20px rgba(0,0,0,.5);opacity:.95}
+  .btns{display:flex;gap:8px}
+  .btn{flex:1;height:44px;border-radius:10px;border:1px solid #3a4a8c;background:#1c2750;color:#eaf0ff;font-size:16px;font-family:inherit;cursor:pointer;touch-action:manipulation}
+  .btn.pri{background:#2f55c8;border-color:#5b82ff}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.go{animation:glow 1.2s infinite}
+  @keyframes glow{50%{box-shadow:0 0 0 4px rgba(91,130,255,.45)}}
+  .final{margin-top:12px;background:#12351f;border:1px solid #2e8f55;border-radius:14px;padding:14px;font-size:17px;line-height:1.5;color:#d6f8e2}
+  .final b.big{display:block;font-size:22px;margin-bottom:6px}
+  .final .stars{font-size:26px;letter-spacing:4px;margin:6px 0;color:#ffd166}
+  .final .note2{font-size:15px;color:#b8e8c9;margin-top:6px}
+  .final .acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .final .acts .btn{min-width:140px;height:46px;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+
+  <div id="menu">
+    <h1>Конструктор задач. Давление газа</h1>
+    <p class="how">Пара 10 · Давление газа. Десять задач от простой к сложной. Решение собирается из плиток: Дано, СИ, формула, подстановка, расчёт.</p>
+    <details class="memo"><summary>📘 Памятка из лекции</summary><div class="mb">
+      <p>p = F / S — давление равно силе, делённой на площадь.</p>
+      <p>p — давление (Па), F — сила (Н), S — площадь (м²).</p>
+      <p>1 кПа = 10³ Па · 1 МПа = 10⁶ Па</p>
+      <p>1 мм рт. ст. ≈ 133 Па · 1 см² = 10⁻⁴ м²</p>
+      <p>Атмосферное давление ≈ 101 кПа = 760 мм рт. ст.</p>
+    </div></details>
+    <div id="list"></div>
+  </div>
+
+  <div id="task" hidden>
+    <button class="back" id="toMenu">← К списку задач</button>
+    <h1 id="tTitle"></h1>
+    <div class="cond"><div class="lab">Задача</div><div id="condText"></div></div>
+    <div class="bar" id="bar"></div>
+    <div class="step" id="step"></div>
+    <div class="nb" id="nb"></div>
+  </div>
+</div>
+
+<div id="panel" hidden><div class="in">
+  <div class="bank" id="bank"></div>
+  <div class="btns">
+    <button class="btn" id="hintBtn">💡 Подсказка</button>
+    <button class="btn pri" id="nextBtn" disabled>Дальше →</button>
+  </div>
+</div></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ======================= справочники ======================= */
+var LET = {p:'давление', F:'сила', S:'площадь', m:'масса', g:'ускорение свободного падения', n:'число раз',
+           'p₁':'давление в баллоне', 'p₂':'атмосферное давление', v:'скорость', t:'время', 'ρ':'плотность', a:'ускорение'};
+var EXTRA_LETTERS = ['m','v','t','ρ','a'];
+var EXTRA_UNITS = ['кг','с','м/с','Дж'];
+var BASE_UNITS = ['Па','Н','м²','кг'];
+
+/* перевод в СИ: f — множитель, rule — правило */
+var CONV = {
+  'см²':{f:1e-4, to:'м²', rule:'1 см² = 0,0001 м²', hint:'В СИ площадь измеряют в квадратных метрах (м²).'},
+  'кПа':{f:1e3, to:'Па', rule:'1 кПа = 1000 Па', hint:'В СИ давление измеряют в паскалях (Па).'},
+  'МПа':{f:1e6, to:'Па', rule:'1 МПа = 1 000 000 Па', hint:'В СИ давление измеряют в паскалях (Па).'},
+  'мм рт. ст.':{f:133, to:'Па', rule:'1 мм рт. ст. ≈ 133 Па', hint:'В СИ давление измеряют в паскалях (Па).'}
+};
+var UH = {
+  'Па':'Давление измеряют в паскалях: 1 Па = 1 Н на 1 м².',
+  'Н':'Силу измеряют в ньютонах (Н).',
+  'м²':'Площадь измеряют в квадратных метрах (м²).',
+  'кг':'Массу измеряют в килограммах (кг).',
+  'раз':'На вопрос «во сколько раз» отвечают просто числом. Единица здесь — «раз».',
+  'см²':'Площадь здесь нужна в квадратных сантиметрах (см²).'
+};
+
+/* формулы: подсказки и разбор ошибок */
+var MINUS = '−';
+var FM = {
+  pFS:{why:'Давление — это сила, делённая на площадь: p = F / S. Оно показывает, какая сила приходится на 1 м² площади.',
+    hints:['Давление показывает, какая сила приходится на единицу площади.', 'Силу делят на площадь: p = F / S.'],
+    swap:'Площадь сверху? Давление — это сила на единицу площади, значит сверху должна стоять сила.',
+    op:{'·':'Умножение даёт не давление. Давление — это сколько силы приходится на 1 м², значит силу нужно разделить на площадь.',
+        '+':'Складывать силу и площадь нельзя: это разные величины.', '−':'Вычитать силу и площадь нельзя: это разные величины.'}},
+  FpS:{why:'Из p = F / S выражаем силу: F = p · S. Сила равна давлению, умноженному на площадь.',
+    hints:['Начни с формулы давления p = F / S. Если p = F / S, то чему равна F?', 'Чтобы найти силу, давление умножают на площадь: F = p · S.'],
+    swap:'Здесь два множителя: давление и площадь. Они меняются местами, но умножение от этого не меняется. Проверь, какая величина должна стоять первой в нашей записи.',
+    op:{'/':'Делить не нужно. Из p = F / S следует F = p · S: силу находят умножением давления на площадь.',
+        '+':'Складывать давление и площадь нельзя: это разные величины.', '−':'Вычитать давление и площадь нельзя: это разные величины.'}},
+  SFp:{why:'Из p = F / S выражаем площадь: S = F / p. Площадь равна силе, делённой на давление.',
+    hints:['Начни с формулы давления p = F / S. Если p = F / S, то чему равна S?', 'Чтобы найти площадь, силу делят на давление: S = F / p.'],
+    swap:'Давление сверху? Из p = F / S площадь получается так: сила делится на давление. Что должно быть сверху?',
+    op:{'·':'Умножать не нужно. Из p = F / S площадь получается делением силы на давление.',
+        '+':'Складывать силу и давление нельзя: это разные величины.', '−':'Вычитать силу и давление нельзя: это разные величины.'}},
+  ratio:{why:'«Во сколько раз больше» — это деление: n = p₁ / p₂. Большее давление делим на меньшее.',
+    hints:['Вопрос «во сколько раз» — это отношение двух величин.', 'Давление в баллоне нужно разделить на атмосферное: n = p₁ / p₂.'],
+    swap:'Если разделить меньшее на большее, получится число меньше 1. Нам нужно узнать, сколько раз атмосферное давление «помещается» в давлении баллона.',
+    op:{'·':'Умножать не нужно: «во сколько раз» — это деление.',
+        '+':'Сложение не отвечает на вопрос «во сколько раз».', '−':'Вычитание покажет, на сколько больше, а спрашивают, во сколько раз. Во сколько раз — делят.'}},
+  mFg:{why:'Сила тяжести груза F = m · g, значит масса m = F / g. Силу делим на g.',
+    hints:['Сила тяжести груза: F = m · g. Выразим из неё массу m.', 'Чтобы найти массу, силу делят на g: m = F / g.'],
+    swap:'g сверху? Из F = m · g масса получается так: сила делится на g. Что должно быть сверху?',
+    op:{'·':'Умножать не нужно. Из F = m · g масса получается делением силы на g.',
+        '+':'Складывать силу и g нельзя: это разные величины.', '−':'Вычитать силу и g нельзя: это разные величины.'}}
+};
+
+/* ======================= задачи (по лекции, пара 10) ======================= */
+var TASKS = [
+ {tag:'Подставить в формулу',
+  html:'Манжета тонометра давит на руку с силой <b class="hl">9 Н</b>. Площадь касания манжеты <b class="hl">0,0012 м²</b>. <b class="hq">Какое давление создаёт манжета?</b>',
+  q:'Какое давление создаёт манжета?',
+  givens:[{l:'F',name:'сила',v:9,u:'Н'}, {l:'S',name:'площадь',v:0.0012,u:'м²'}],
+  find:{l:'p',name:'давление',u:'Па'},
+  steps:[{lhs:'p',name:'давление',a:'F',op:'/',b:'S',kind:'pFS',u:'Па',sig:4}]},
+
+ {tag:'Площадь в см²',
+  html:'Врач давит на поршень шприца с силой <b class="hl">20 Н</b>. Площадь поршня <b class="hl">4 см²</b>. <b class="hq">Какое давление создаётся в шприце?</b>',
+  q:'Какое давление создаётся в шприце?',
+  givens:[{l:'F',name:'сила',v:20,u:'Н'}, {l:'S',name:'площадь',v:4,u:'см²'}],
+  find:{l:'p',name:'давление',u:'Па'},
+  steps:[{lhs:'p',name:'давление',a:'F',op:'/',b:'S',kind:'pFS',u:'Па',sig:4}]},
+
+ {tag:'Найти силу',
+  html:'Атмосферное давление <b class="hl">101&nbsp;300 Па</b>. <b class="hq">С какой силой воздух давит на грудную клетку</b> площадью <b class="hl">0,06 м²</b>?',
+  q:'С какой силой воздух давит на грудную клетку?',
+  givens:[{l:'p',name:'давление',v:101300,u:'Па'}, {l:'S',name:'площадь',v:0.06,u:'м²'}],
+  find:{l:'F',name:'сила',u:'Н'},
+  steps:[{lhs:'F',name:'сила',a:'p',op:'·',b:'S',kind:'FpS',u:'Н',sig:4}]},
+
+ {tag:'Сила и перевод единиц',
+  html:'Атмосферное давление <b class="hl">101,3 кПа</b>. <b class="hq">С какой силой воздух давит на ладонь</b> площадью <b class="hl">80 см²</b>?',
+  q:'С какой силой воздух давит на ладонь?',
+  givens:[{l:'p',name:'давление',v:101.3,u:'кПа'}, {l:'S',name:'площадь',v:80,u:'см²'}],
+  find:{l:'F',name:'сила',u:'Н'},
+  steps:[{lhs:'F',name:'сила',a:'p',op:'·',b:'S',kind:'FpS',u:'Н',sig:3}]},
+
+ {tag:'Найти площадь',
+  html:'Манжета тонометра давит на руку с силой <b class="hl">150 Н</b>, давление под ней <b class="hl">25 кПа</b>. <b class="hq">Какова площадь манжеты?</b> Ответ дай в м².',
+  q:'Какова площадь манжеты?',
+  givens:[{l:'F',name:'сила',v:150,u:'Н'}, {l:'p',name:'давление',v:25,u:'кПа'}],
+  find:{l:'S',name:'площадь',u:'м²'},
+  steps:[{lhs:'S',name:'площадь',a:'F',op:'/',b:'p',kind:'SFp',u:'м²',sig:3}]},
+
+ {tag:'Давление в мм рт. ст.',
+  html:'Давление крови на стенку артерии <b class="hl">120 мм рт. ст.</b> Площадь участка стенки <b class="hl">2 см²</b>. <b class="hq">С какой силой кровь давит на этот участок?</b> Считай 1 мм рт. ст. ≈ 133 Па.',
+  q:'С какой силой кровь давит на этот участок?',
+  givens:[{l:'p',name:'давление',v:120,u:'мм рт. ст.'}, {l:'S',name:'площадь',v:2,u:'см²'}],
+  find:{l:'F',name:'сила',u:'Н'},
+  steps:[{lhs:'F',name:'сила',a:'p',op:'·',b:'S',kind:'FpS',u:'Н',sig:3}]},
+
+ {tag:'Давление в МПа',
+  html:'Давление газа в кислородном баллоне <b class="hl">15 МПа</b>. <b class="hq">С какой силой газ давит на крышку вентиля</b> площадью <b class="hl">3 см²</b>?',
+  q:'С какой силой газ давит на крышку вентиля?',
+  givens:[{l:'p',name:'давление',v:15,u:'МПа'}, {l:'S',name:'площадь',v:3,u:'см²'}],
+  find:{l:'F',name:'сила',u:'Н'},
+  steps:[{lhs:'F',name:'сила',a:'p',op:'·',b:'S',kind:'FpS',u:'Н',sig:3}]},
+
+ {tag:'Во сколько раз',
+  html:'Давление в кислородном баллоне <b class="hl">15 МПа</b>, а атмосферное давление <b class="hl">101,3 кПа</b>. <b class="hq">Во сколько раз давление в баллоне больше атмосферного?</b>',
+  q:'Во сколько раз давление в баллоне больше атмосферного?',
+  givens:[{l:'p₁',name:'давление в баллоне',v:15,u:'МПа'}, {l:'p₂',name:'атмосферное давление',v:101.3,u:'кПа'}],
+  find:{l:'n',name:'число раз',u:'раз'},
+  steps:[{lhs:'n',name:'число раз',a:'p₁',op:'/',b:'p₂',kind:'ratio',u:'раз',sig:3,tol:0.02}],
+  note:'Давление в баллоне примерно в 150 раз больше атмосферного. Так и сказано в лекции.'},
+
+ {tag:'Два действия',
+  html:'Атмосферное давление <b class="hl">101,3 кПа</b> действует на ладонь площадью <b class="hl">95 см²</b>. <b class="hq">Какой массе груза равна эта сила?</b> Считай g = <b class="hl">9,8 Н/кг</b>.',
+  q:'Какой массе груза равна эта сила?',
+  givens:[{l:'p',name:'давление',v:101.3,u:'кПа'}, {l:'S',name:'площадь',v:95,u:'см²'}, {l:'g',name:'ускорение свободного падения',v:9.8,u:'Н/кг'}],
+  find:{l:'m',name:'масса',u:'кг'},
+  steps:[{lhs:'F',name:'сила',a:'p',op:'·',b:'S',kind:'FpS',u:'Н',sig:3},
+         {lhs:'m',name:'масса',a:'F',op:'/',b:'g',kind:'mFg',u:'кг',sig:3}],
+  note:'Это почти 100 кг на ладони. Мы их не чувствуем, потому что воздух давит на руку со всех сторон одинаково.'},
+
+ {tag:'Всё вместе',
+  html:'Тонометр показывает давление крови <b class="hl">120 мм рт. ст.</b> <b class="hq">На какую площадь нужно надавить силой</b> <b class="hl">4 Н</b>, чтобы получить такое же давление? Ответ дай в см². Считай 1 мм рт. ст. ≈ 133 Па.',
+  q:'На какую площадь нужно надавить силой 4 Н?',
+  givens:[{l:'p',name:'давление',v:120,u:'мм рт. ст.'}, {l:'F',name:'сила',v:4,u:'Н'}],
+  find:{l:'S',name:'площадь',u:'см²'},
+  steps:[{lhs:'S',name:'площадь',a:'F',op:'/',b:'p',kind:'SFp',u:'м²',sig:2}],
+  back:{u:'см²', f:1e4, rule:'1 см² = 0,0001 м². Значит, чтобы перейти из м² в см², число умножают на 10 000.'}}
+];
+
+/* ======================= утилиты ======================= */
+var $ = function(id){ return document.getElementById(id); };
+function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function shuffle(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function uniq(a){ var o = [], seen = {}; a.forEach(function(x){ if (x != null && !seen[x]){ seen[x] = 1; o.push(x); } }); return o; }
+function sig(x, n){ return parseFloat(Number(x).toPrecision(n)); }
+function clean(x){ return parseFloat(Number(x).toPrecision(12)); }
+function fmt(x){
+  var s = String(parseFloat(Number(x).toPrecision(10)));
+  if (/e/i.test(s)) s = Number(x).toFixed(10).replace(/0+$/, '').replace(/\.$/, '');
+  var p = s.split('.'), ip = p[0];
+  if (ip.length >= 5) ip = ip.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return p[1] ? ip + ',' + p[1] : ip;
+}
+function parseNum(t){ return Number(String(t).replace(/[\s ]/g, '').replace(',', '.')); }
+function opv(x, op, y){ return op === '/' ? x / y : x * y; }
+function opSign(op){ return op === '/' ? '÷' : '·'; }
+var ACC = {letter:'букву', value:'число', unit:'единицу измерения', op:'знак действия'};
+
+/* подготовка данных задачи: тексты, СИ, результаты шагов */
+function prepare(T){
+  T.Q = {}; T.names = {};
+  T.givens.forEach(function(g){
+    g.text = fmt(g.v);
+    var c = CONV[g.u];
+    if (c){ g.conv = true; g.rule = c.rule; g.hintSI = c.hint; g.si = {v:clean(g.v * c.f), u:c.to, f:c.f}; }
+    else { g.conv = false; g.si = {v:g.v, u:g.u, f:1}; }
+    g.si.text = fmt(g.si.v);
+    T.Q[g.l] = {name:g.name, kind:'given', raw:{v:g.v, u:g.u, text:g.text}, si:{v:g.si.v, u:g.si.u, text:g.si.text}, conv:g.conv, rule:g.rule, hintSI:g.hintSI};
+    T.names[g.l] = g.name;
+  });
+  T.names[T.find.l] = T.find.name;
+  T.steps.forEach(function(s, k){
+    var A = T.Q[s.a], B = T.Q[s.b];
+    s.exact = opv(A.si.v, s.op, B.si.v);
+    s.rawA = A.raw ? A.raw.v : A.si.v; s.rawB = B.raw ? B.raw.v : B.si.v;
+    s.rawExact = opv(s.rawA, s.op, s.rawB);
+    s.v = sig(s.exact, s.sig); s.text = fmt(s.v);
+    T.Q[s.lhs] = {name:s.name, kind:'step', raw:null, si:{v:s.v, u:s.u, text:s.text}, conv:false};
+    T.names[s.lhs] = s.name;
+    s.last = (k === T.steps.length - 1); s.swapped = false;
+  });
+  if (T.back){
+    var ls = T.steps[T.steps.length - 1];
+    T.back.v = clean(ls.v * T.back.f); T.back.text = fmt(T.back.v);
+  }
+  T.final = T.back ? {l:T.find.l, text:T.back.text, u:T.back.u} : {l:T.find.l, text:T.steps[T.steps.length - 1].text, u:T.steps[T.steps.length - 1].u};
+  return T;
+}
+function nm(T, l){ return T.names[l] || LET[l] || l; }
+function operands(s){
+  var A = T.Q[s.a], B = T.Q[s.b];
+  return s.swapped ? {A:B, B:A, aL:s.b, bL:s.a} : {A:A, B:B, aL:s.a, bL:s.b};
+}
+function pow10Msg(t, correct){
+  var x = parseNum(t); if (!isFinite(x) || x <= 0 || !(correct > 0)) return null;
+  var r = x / correct, k = Math.round(Math.log(r) / Math.LN10);
+  if (k !== 0 && Math.abs(r / Math.pow(10, k) - 1) < 0.02) return 'это число в ' + fmt(Math.pow(10, Math.abs(k))) + ' раз ' + (k > 0 ? 'больше' : 'меньше') + ', чем нужно';
+  return null;
+}
+
+/* ======================= состояние ======================= */
+var T = null, st = null, cur = null, stages = [], makers = [], PROG = {};
+function loadProg(){ try{ PROG = JSON.parse(localStorage.getItem('konstruktor.davlenie.v1') || '{}') || {}; }catch(e){ PROG = {}; } }
+function saveProg(){ try{ localStorage.setItem('konstruktor.davlenie.v1', JSON.stringify(PROG)); }catch(e){} }
+
+function say(msg, cls){
+  var f = $('fb'); if (!f) return;
+  f.className = 'fb' + (cls ? ' ' + cls : ''); f.textContent = msg || '';
+  fitPadding();
+  if (msg) setTimeout(function(){ reveal(f); }, 30);
+}
+function reveal(f){
+  var r = f.getBoundingClientRect(), top = $('panel').getBoundingClientRect().top;
+  if (r.bottom > top - 8) window.scrollBy({top: r.bottom - top + 16, behavior:'smooth'});
+  else if (r.top < 8) window.scrollBy({top: r.top - 16, behavior:'smooth'});
+}
+function fitPadding(){ $('wrap').style.paddingBottom = $('panel').hidden ? '40px' : ($('panel').offsetHeight + 24) + 'px'; }
+
+/* ======================= ячейки ======================= */
+function mkSlot(kind, check, expect){
+  var s = {kind:kind, check:check, expect:expect, filled:false, el:el('span', 'slot k-' + kind)};
+  s.el._slot = s; cur.slots.push(s); return s;
+}
+function flashBad(node){ node.classList.remove('bad'); void node.offsetWidth; node.classList.add('bad'); setTimeout(function(){ node.classList.remove('bad'); }, 600); }
+function place(slot, text, kind){
+  if (!cur || slot.filled || cur.done) return;
+  if (kind !== slot.kind){ st.errors++; flashBad(slot.el); say('В эту ячейку нужно поставить ' + ACC[slot.kind] + '.', 'bad'); return; }
+  var r = slot.check(text);
+  if (r.ok){
+    slot.filled = true; slot.el.textContent = text; slot.el.classList.add('ok');
+    say(r.msg || 'Верно!', 'ok'); checkStageDone();
+  } else { st.errors++; flashBad(slot.el); say(r.msg, 'bad'); }
+}
+function checkStageDone(){
+  if (!cur.slots.every(function(s){ return s.filled; })) return;
+  if (cur.extra && !cur.extra()) return;
+  cur.done = true;
+  var isLast = st.stage === stages.length - 1;
+  $('bar').children[st.stage].className = 'done';
+  if (isLast){ finish(); return; }
+  say('✅ ' + stg(st.stage).done, 'ok');
+  $('nextBtn').disabled = false; $('nextBtn').classList.add('go'); $('hintBtn').disabled = true;
+}
+
+/* ======================= шаги ======================= */
+function whereWord(op, first){ return op === '/' ? (first ? 'сверху' : 'снизу') : (first ? 'в первом множителе' : 'во втором множителе'); }
+
+function stageGiven(){
+  var G = T.givens, used = {};
+  var letters = uniq(G.map(function(g){ return g.l; }).concat([T.find.l]).concat(T.steps.slice(0, -1).map(function(s){ return s.lhs; })));
+  var extras = shuffle(EXTRA_LETTERS.filter(function(x){ return letters.indexOf(x) < 0 && !T.Q[x]; })).slice(0, 2);
+  var values = uniq(G.map(function(g){ return g.text; }).concat(G.filter(function(g){ return g.conv; }).map(function(g){ return g.si.text; })));
+  var units = uniq(G.map(function(g){ return g.u; }).concat(G.filter(function(g){ return g.conv; }).map(function(g){ return g.si.u; })));
+  var xu = shuffle(EXTRA_UNITS.filter(function(u){ return units.indexOf(u) < 0; })).slice(0, 1); units = units.concat(xu);
+  function siHas(type, t){ return G.some(function(g){ return g.conv && (type === 'value' ? g.si.text === t : g.si.u === t); }); }
+  function matches(g, type, t){ return type === 'letter' ? g.l === t : type === 'value' ? g.text === t : g.u === t; }
+  function okMsg(g, type, t){
+    if (type === 'letter') return 'Верно: ' + t + ' — это ' + g.name + '.';
+    if (type === 'value') return 'Верно: ' + t + ' — число из условия.';
+    return 'Верно: единица записана как в условии.';
+  }
+  function check(line, type, t){
+    if (line.id == null){
+      for (var i = 0; i < G.length; i++) if (!used[i] && matches(G[i], type, t)){ line.id = i; used[i] = true; return {ok:true, msg:okMsg(G[i], type, t)}; }
+      for (var j = 0; j < G.length; j++) if (used[j] && matches(G[j], type, t)) return {ok:false, msg:'Это уже записано в другой строке.'};
+      if (type === 'letter'){
+        if (t === T.find.l) return {ok:false, msg:t + ' — это ' + T.find.name + '. Но её нужно найти, а в «Дано» пишем только то, что известно из условия.'};
+        if (T.Q[t] && T.Q[t].kind === 'step') return {ok:false, msg:t + ' — это ' + T.Q[t].name + '. Её в условии нет, мы найдём её по ходу решения.'};
+        return {ok:false, msg:'В условии нет величины «' + (LET[t] || t) + '». Перечитай задачу: что в ней известно?'};
+      }
+      if (type === 'value') return {ok:false, msg: siHas('value', t) ? 'Это число получится позже, после перевода в СИ. Сейчас пиши числа из условия.' : 'Такого числа нет в условии. Перечитай задачу.'};
+      return {ok:false, msg: siHas('unit', t) ? 'Эта единица понадобится позже, при переводе в СИ. Сейчас пиши единицы из условия.' : 'Такой единицы нет в условии.'};
+    }
+    var g = G[line.id];
+    if (matches(g, type, t)) return {ok:true, msg:okMsg(g, type, t)};
+    var o = null; for (var k = 0; k < G.length; k++) if (k !== line.id && matches(G[k], type, t)) o = G[k];
+    if (type === 'letter'){
+      if (o) return {ok:false, msg:'Эта строка про величину «' + g.name + '». Буква ' + t + ' означает «' + o.name + '», для неё отдельная строка.'};
+      if (t === T.find.l) return {ok:false, msg:t + ' — это ' + T.find.name + ', её ищем. Здесь нужна буква величины «' + g.name + '».'};
+      return {ok:false, msg:'Величины «' + (LET[t] || t) + '» в условии нет. Здесь нужна буква для величины «' + g.name + '».'};
+    }
+    if (type === 'value'){
+      if (o) return {ok:false, msg:'Число ' + t + ' относится к величине «' + o.name + '». А эта строка про величину «' + g.name + '».'};
+      if (siHas('value', t)) return {ok:false, msg:'Это число в СИ, оно понадобится позже. Сейчас нужно число из условия для величины «' + g.name + '».'};
+      return {ok:false, msg:'Такого числа в условии нет. Какое число относится к величине «' + g.name + '»?'};
+    }
+    if (o) return {ok:false, msg:'Единица «' + t + '» относится к величине «' + o.name + '». Здесь нужна единица для величины «' + g.name + '».'};
+    if (siHas('unit', t)) return {ok:false, msg:'В условии эта величина дана в других единицах. Перевод в СИ будет на следующем шаге, сейчас пиши, как в условии.'};
+    return {ok:false, msg:'Единица должна быть такой, как в условии.'};
+  }
+  return {
+    lbl:'Дано:', title:'Дано',
+    instr:'Для каждой величины из условия перетащи в строку букву, число и единицу измерения.',
+    hints:['Прочитай условие: что в нём известно? Запиши каждую величину отдельной строкой: буква, число, единица.',
+           'В условии есть: ' + G.map(function(g){ return g.name + ' (' + g.l + ')'; }).join(', ') + '. Числа и единицы пиши так, как в условии.'],
+    done:'Дано записано: ' + G.map(function(g){ return g.l + ' = ' + g.text + ' ' + g.u; }).join('; ') + '.',
+    pool:{letter:letters.concat(extras), value:values, unit:units},
+    build:function(box){
+      var lines = [];
+      G.forEach(function(){
+        var line = {id:null}; lines.push(line);
+        var row = el('div', 'row');
+        ['letter', '=', 'value', 'unit'].forEach(function(type){
+          if (type === '='){ row.appendChild(el('span', 'st', '=')); return; }
+          var s = mkSlot(type, function(t){ return check(line, type, t); }, function(){
+            var key = type === 'letter' ? 'l' : type === 'value' ? 'text' : 'u';
+            if (line.id != null) return G[line.id][key];
+            for (var i = 0; i < G.length; i++) if (!used[i]) return G[i][key];
+            return null;
+          });
+          row.appendChild(s.el);
+        });
+        box.appendChild(row);
+      });
+    }
+  };
+}
+
+function stageFind(){
+  var f = T.find, inter = T.steps.slice(0, -1).map(function(s){ return s.lhs; });
+  var letters = uniq(T.givens.map(function(g){ return g.l; }).concat([f.l]).concat(inter));
+  letters = letters.concat(shuffle(EXTRA_LETTERS.filter(function(x){ return letters.indexOf(x) < 0; })).slice(0, 2));
+  return {
+    lbl:'Найти:', title:'Найти',
+    instr:'Какой буквой обозначается величина, которую нужно найти?',
+    hints:['Перечитай вопрос задачи: «' + T.q + '» Что здесь ищут?', 'Это «' + f.name + '». Её обозначают буквой ' + f.l + '.'],
+    done:'Найти: ' + f.l + ' — ' + f.name + '. Это то, о чём спрашивает задача.',
+    pool:{letter:letters},
+    build:function(box){
+      var row = el('div', 'row');
+      var s = mkSlot('letter', function(t){
+        if (t === f.l) return {ok:true, msg:'Верно: ' + t + ' — это ' + f.name + '.'};
+        var g = null; T.givens.forEach(function(x){ if (x.l === t) g = x; });
+        if (g) return {ok:false, msg:t + ' — это ' + g.name + ', оно уже дано. Вопрос задачи: «' + T.q + '» Что именно ищут?'};
+        if (T.Q[t] && T.Q[t].kind === 'step') return {ok:false, msg:t + ' — это ' + T.Q[t].name + '. Она понадобится по ходу решения, но в вопросе спрашивают другое: «' + T.q + '»'};
+        return {ok:false, msg:t + ' — это «' + (LET[t] || t) + '». Вопрос задачи: «' + T.q + '» Что в нём ищут?'};
+      }, function(){ return f.l; });
+      row.appendChild(s.el); row.appendChild(el('span', 'st', '— ?')); box.appendChild(row);
+    }
+  };
+}
+
+function stageSI(){
+  var conv = T.givens.filter(function(g){ return g.conv; });
+  var values = [], units = [];
+  conv.forEach(function(g){
+    values.push(g.si.text, g.text, fmt(clean(g.si.v * 10)), fmt(clean(g.si.v / 10)));
+    units.push(g.si.u, g.u);
+  });
+  var rules = uniq(conv.map(function(g){ return g.rule; }));
+  return {
+    lbl:'СИ:', title:'Перевод в СИ',
+    instr:'Переведи числа в основные единицы СИ: ' + uniq(conv.map(function(g){ return nm(T, g.l) + ' — в ' + g.si.u; })).join(', ') + '.',
+    hints:['Все величины нужно записать в СИ. Какие из них даны в других единицах?', 'Правила перевода: ' + rules.join('; ') + '.'],
+    done:'Перевели в СИ: ' + conv.map(function(g){ return g.text + ' ' + g.u + ' = ' + g.si.text + ' ' + g.si.u; }).join('; ') + '. В формулы подставляем только значения в СИ.',
+    pool:{value:uniq(values), unit:uniq(units)},
+    build:function(box){
+      conv.forEach(function(g){
+        var row = el('div', 'row');
+        row.appendChild(el('span', 'st', g.l + ' = ' + g.text + ' ' + g.u + ' ='));
+        var sv = mkSlot('value', function(t){
+          if (t === g.si.text) return {ok:true, msg:'Верно: ' + g.text + ' ' + g.u + ' = ' + g.si.text + ' ' + g.si.u + '.'};
+          if (t === g.text) return {ok:false, msg:'Число не изменилось: это всё ещё ' + g.text + ' ' + g.u + '. Нужно перевести в ' + g.si.u + '. ' + g.rule + '.'};
+          var o = null; conv.forEach(function(x){ if (x !== g && (x.text === t || x.si.text === t)) o = x; });
+          if (o) return {ok:false, msg:'Это число для величины «' + o.name + '». А здесь переводим величину «' + g.name + '».'};
+          var pm = pow10Msg(t, g.si.v);
+          return {ok:false, msg:(pm ? 'Не то: ' + pm + '. ' : 'Не то. ') + 'Проверь правило: ' + g.rule + '.'};
+        }, function(){ return g.si.text; });
+        var su = mkSlot('unit', function(t){
+          if (t === g.si.u) return {ok:true, msg:'Верно: ' + g.hintSI};
+          if (t === g.u) return {ok:false, msg:'Единицу тоже нужно перевести. ' + g.hintSI};
+          return {ok:false, msg:'Это не единица СИ для этой величины. ' + g.hintSI};
+        }, function(){ return g.si.u; });
+        row.appendChild(sv.el); row.appendChild(su.el); box.appendChild(row);
+      });
+    }
+  };
+}
+
+function stageFormula(k){
+  var s = T.steps[k], F = FM[s.kind], multi = T.steps.length > 1;
+  var inUse = [s.lhs, s.a, s.b];
+  var others = Object.keys(T.Q).filter(function(x){ return inUse.indexOf(x) < 0; });
+  var extra = shuffle(EXTRA_LETTERS.filter(function(x){ return !T.Q[x]; })).slice(0, 1);
+  var letters = uniq(inUse.concat(others.slice(0, 2)).concat(extra));
+  var okm = ['Верно: слева — то, что ищем.', 'Верно.', 'Верно: это правильное действие.', 'Верно.'];
+  function letterMsg(slotIdx, t){
+    var exp = slotIdx === 0 ? s.lhs : slotIdx === 1 ? s.a : s.b;
+    if (t === exp) return {ok:true, msg:slotIdx === 0 ? okm[0] : 'Верно.'};
+    if (slotIdx === 0) return {ok:false, msg:'Слева пишем то, что ищем сейчас: «' + s.name + '» (' + s.lhs + ').'};
+    var other = slotIdx === 1 ? s.b : s.a;
+    if (t === other) return {ok:false, msg:F.swap};
+    if (t === s.lhs) return {ok:false, msg:t + ' уже стоит слева: это то, что мы ищем.'};
+    if (T.Q[t]) return {ok:false, msg:'Эта величина («' + nm(T, t) + '») в этой формуле не нужна.'};
+    return {ok:false, msg:'В этой задаче нет величины «' + (LET[t] || t) + '».'};
+  }
+  return {
+    lbl:multi ? 'Формула ' + (k + 1) + ':' : 'Формула:', title:multi ? 'Формула ' + (k + 1) : 'Формула',
+    instr:(multi ? 'Составь формулу для величины «' + s.name + '» (' + s.lhs + '). ' : 'Собери формулу. ') + 'Слева то, что ищем, справа выражение из двух величин.',
+    hints:F.hints,
+    done:F.why,
+    pool:{letter:letters, op:['/', '·', '+', MINUS]},
+    build:function(box){
+      var row = el('div', 'row'), sl = [];
+      var spec = [['letter', 0], ['letter', 1], ['op', 2], ['letter', 3]];
+      var exp = [s.lhs, s.a, s.op, s.b], comm = s.op === '\u00b7';
+      spec.forEach(function(p, i){
+        var kind = p[0];
+        sl.push(mkSlot(kind, function(t){
+          if (kind === 'op') return t === s.op ? {ok:true, msg:okm[2]} : {ok:false, msg:F.op[t] || 'Такое действие здесь не подходит.'};
+          if (comm && (i === 1 || i === 3)){
+            /* при умножении множители можно записать в любом порядке */
+            var mine = [s.a, s.b], oth = sl[i === 1 ? 3 : 1];
+            if (mine.indexOf(t) >= 0){
+              if (oth.filled && oth.el.textContent === t) return {ok:false, msg:'Эта величина уже стоит в формуле. Нужна вторая.'};
+              return {ok:true, msg:'Верно.'};
+            }
+            if (t === s.lhs) return {ok:false, msg:t + ' уже стоит слева: это то, что мы ищем.'};
+            if (T.Q[t]) return {ok:false, msg:'Эта величина («' + nm(T, t) + '») в этой формуле не нужна.'};
+            return {ok:false, msg:'В этой задаче нет величины «' + (LET[t] || t) + '».'};
+          }
+          return letterMsg(i === 3 ? 2 : i, t);
+        }, function(){
+          if (comm && i === 3 && sl[1].filled) return sl[1].el.textContent === s.a ? s.b : s.a;
+          return exp[i];
+        }));
+      });
+      if (comm) cur.extra = function(){ s.swapped = sl[1].el.textContent === s.b; return true; };
+      row.appendChild(sl[0].el); row.appendChild(el('span', 'st', '=')); row.appendChild(sl[1].el); row.appendChild(sl[2].el); row.appendChild(sl[3].el);
+      box.appendChild(row);
+    }
+  };
+}
+
+function qSlots(q, where, onlyValueAndUnit){
+  /* две ячейки (число, единица) для величины q в подстановке */
+  var oth = []; Object.keys(T.Q).forEach(function(l){ if (T.Q[l] !== q) oth.push(T.Q[l]); });
+  var sv = mkSlot('value', function(t){
+    if (t === q.si.text) return {ok:true, msg:'Верно.'};
+    if (q.conv && t === q.raw.text) return {ok:false, msg:'Это число до перевода в СИ. В формулу подставляем значения в СИ — те, что получили на шаге «СИ».'};
+    var o = null; oth.forEach(function(x){ if (x.si.text === t || (x.raw && x.raw.text === t)) o = x; });
+    if (o) return {ok:false, msg:'Это значение величины «' + o.name + '». Здесь нужна величина «' + q.name + '»: в формуле она стоит ' + where + '.'};
+    return {ok:false, msg:'Такого числа здесь быть не должно. Возьми значения из шага «СИ» или из предыдущего расчёта.'};
+  }, function(){ return q.si.text; });
+  var su = mkSlot('unit', function(t){
+    if (t === q.si.u) return {ok:true, msg:'Верно.'};
+    if (q.conv && t === q.raw.u) return {ok:false, msg:'Единица тоже должна быть в СИ: ' + q.si.u + '.'};
+    var o = null; oth.forEach(function(x){ if (x.si.u === t) o = x; });
+    if (o) return {ok:false, msg:'Это единица величины «' + o.name + '». У величины «' + q.name + '» другая единица.'};
+    return {ok:false, msg:'Не подходит. Нужна единица СИ для величины «' + q.name + '».'};
+  }, function(){ return q.si.u; });
+  return [sv, su];
+}
+
+function stageSubst(k){
+  var s = T.steps[k], o = operands(s), A = o.A, B = o.B, multi = T.steps.length > 1;
+  var values = uniq([A.si.text, B.si.text, A.conv ? A.raw.text : null, B.conv ? B.raw.text : null]);
+  var known = T.givens.map(function(g){ return g.l; }).concat(T.steps.slice(0, k).map(function(x){ return x.lhs; }));
+  known.forEach(function(l){ if (l !== o.aL && l !== o.bL && values.length < 6) values.push(T.Q[l].si.text); });
+  var units = uniq([A.si.u, B.si.u, A.conv ? A.raw.u : null, B.conv ? B.raw.u : null]);
+  shuffle(BASE_UNITS.filter(function(u){ return units.indexOf(u) < 0; })).slice(0, 1).forEach(function(u){ units.push(u); });
+  return {
+    lbl:multi ? 'Решение ' + (k + 1) + ':' : 'Решение:', title:multi ? 'Подстановка ' + (k + 1) : 'Подстановка',
+    instr:'Подставь в формулу числа в СИ вместе с единицами. ' + (s.op === '/' ? 'Сверху ' + nm(T, o.aL) + ', снизу ' + nm(T, o.bL) + '.' : 'Подставляй в том порядке, как записана твоя формула: сначала ' + nm(T, o.aL) + ', потом ' + nm(T, o.bL) + '.'),
+    hints:['Бери значения в СИ: из шага «СИ» или из предыдущего расчёта, а не из условия.',
+           'Нужно подставить: ' + o.aL + ' = ' + A.si.text + ' ' + A.si.u + ', ' + o.bL + ' = ' + B.si.text + ' ' + B.si.u + '.'],
+    done:'Подставили значения в СИ: ' + s.lhs + ' = ' + A.si.text + ' ' + A.si.u + ' ' + opSign(s.op) + ' ' + B.si.text + ' ' + B.si.u + '.',
+    pool:{value:values, unit:units},
+    build:function(box){
+      var row = el('div', 'row');
+      row.appendChild(el('span', 'st', s.lhs + ' ='));
+      var a = qSlots(A, whereWord(s.op, true)), b = qSlots(B, whereWord(s.op, false));
+      if (s.op === '/'){
+        var frac = el('span', 'frac'), r1 = el('span', 'fr'), r2 = el('span', 'fr');
+        r1.appendChild(a[0].el); r1.appendChild(a[1].el); r2.appendChild(b[0].el); r2.appendChild(b[1].el);
+        frac.appendChild(r1); frac.appendChild(el('span', 'fbar')); frac.appendChild(r2); row.appendChild(frac);
+      } else {
+        row.appendChild(a[0].el); row.appendChild(a[1].el); row.appendChild(el('span', 'st', '·')); row.appendChild(b[0].el); row.appendChild(b[1].el);
+      }
+      box.appendChild(row);
+    }
+  };
+}
+
+function stageCalc(k){
+  var s = T.steps[k], o = operands(s), A = o.A, B = o.B, multi = T.steps.length > 1;
+  var expr = A.si.text + ' ' + opSign(s.op) + ' ' + B.si.text;
+  var tol = s.tol || 0.01;
+  var units = uniq([s.u].concat(shuffle(BASE_UNITS.concat(['раз']).filter(function(u){ return u !== s.u; })).slice(0, 3)));
+  return {
+    lbl:multi ? 'Расчёт ' + (k + 1) + ':' : 'Ответ:', title:multi ? 'Расчёт ' + (k + 1) : 'Расчёт',
+    instr:'Посчитай на калькуляторе ' + expr + ' и впиши число. Потом выбери единицу измерения.',
+    hints:['Посчитай на калькуляторе: ' + expr + '. Ответ округли до трёх цифр.', 'Должно получиться около ' + s.text + '. ' + (UH[s.u] || '')],
+    done:'Получили: ' + s.lhs + ' ≈ ' + s.text + ' ' + s.u + '.',
+    pool:{unit:units},
+    note:'Число впиши в поле, единицу перетащи в ячейку',
+    build:function(box){
+      var row = el('div', 'row');
+      row.appendChild(el('span', 'st', s.lhs + ' ='));
+      if (s.op === '/'){
+        var frac = el('span', 'frac'), r1 = el('span', 'fr'), r2 = el('span', 'fr');
+        r1.appendChild(el('span', 'st', A.si.text + ' ' + A.si.u)); r2.appendChild(el('span', 'st', B.si.text + ' ' + B.si.u));
+        frac.appendChild(r1); frac.appendChild(el('span', 'fbar')); frac.appendChild(r2); row.appendChild(frac);
+      } else {
+        row.appendChild(el('span', 'st', A.si.text + ' ' + A.si.u + ' · ' + B.si.text + ' ' + B.si.u));
+      }
+      row.appendChild(el('span', 'st', '≈'));
+      var inp = el('input', 'num-in'); inp.setAttribute('inputmode', 'decimal'); inp.setAttribute('autocomplete', 'off'); inp.setAttribute('placeholder', '?');
+      var btn = el('button', 'chk', 'Проверить'); btn.type = 'button';
+      var us = mkSlot('unit', function(t){
+        if (t === s.u) return {ok:true, msg:'Верно: ' + (UH[s.u] || 'единица подходит.')};
+        return {ok:false, msg:'Не подходит. ' + (UH[s.u] || '')};
+      }, function(){ return s.u; });
+      cur.numOk = false; cur.wrongNum = 0; cur.extra = function(){ return cur.numOk; };
+      function submit(){
+        if (cur.numOk || cur.done) return;
+        var x = parseNum(inp.value);
+        if (inp.value.replace(/\s/g, '') === '' || !isFinite(x)){ say('Впиши число. Можно с запятой, например 3,19.', 'info'); return; }
+        if (Math.abs(x - s.exact) <= tol * Math.abs(s.exact)){
+          cur.numOk = true; inp.value = s.text; inp.classList.add('ok'); inp.disabled = true; btn.disabled = true;
+          say('Верно: ' + expr + ' ≈ ' + s.text + '.', 'ok'); checkStageDone();
+        } else {
+          st.errors++; cur.wrongNum++; flashBad(inp);
+          var m, near = function(v){ return isFinite(v) && Math.abs(x - v) <= 0.02 * Math.abs(v); };
+          if (T.steps[k].op === '/' && near(opv(B.si.v, '/', A.si.v))) m = 'Ты разделил(а) наоборот. Проверь, что делим на что: ' + expr + '.';
+          else if (s.op === '/' && near(A.si.v * B.si.v)) m = 'Ты умножил(а), а нужно делить: ' + expr + '.';
+          else if (s.op !== '/' && near(A.si.v / B.si.v)) m = 'Ты разделил(а), а нужно умножать: ' + expr + '.';
+          else if ((A.conv || B.conv) && near(s.rawExact)) m = 'Похоже, ты считал(а) с числами из условия, не переводя единицы в СИ. Считай по значениям из шага «СИ»: ' + expr + '.';
+          else {
+            var pm = pow10Msg(inp.value, s.exact);
+            m = pm ? 'Не совпало: ' + pm + '. Проверь запятую и степень числа 10.' : 'Не совпало. Проверь вычисление на калькуляторе: ' + expr + '. Ответ округли до трёх цифр.';
+          }
+          if (cur.wrongNum >= 3 && st.hintLvl === 0) m += ' Можно взять подсказку.';
+          say(m, 'bad');
+        }
+      }
+      btn.addEventListener('click', submit);
+      inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') submit(); });
+      row.appendChild(inp); row.appendChild(us.el); row.appendChild(btn);
+      box.appendChild(row);
+      cur.submit = function(v){ inp.value = v; submit(); };
+    }
+  };
+}
+
+function stageBack(){
+  var b = T.back, ls = T.steps[T.steps.length - 1];
+  var values = uniq([b.text, ls.text, fmt(clean(b.v * 10)), fmt(clean(b.v / 10)), fmt(clean(b.v * 100)), fmt(clean(b.v / 100))]);
+  return {
+    lbl:'Ответ в см²:', title:'Перевод ответа',
+    instr:'В задаче просят ответ в ' + b.u + '. Переведи полученное число из ' + ls.u + ' в ' + b.u + '.',
+    hints:['Ответ нужно записать в ' + b.u + '. ' + b.rule, 'Получится ' + b.text + ' ' + b.u + '.'],
+    done:'Перевели ответ: ' + ls.text + ' ' + ls.u + ' = ' + b.text + ' ' + b.u + '.',
+    pool:{value:values, unit:uniq([b.u, ls.u])},
+    build:function(box){
+      var row = el('div', 'row');
+      row.appendChild(el('span', 'st', T.find.l + ' = ' + ls.text + ' ' + ls.u + ' ='));
+      var sv = mkSlot('value', function(t){
+        if (t === b.text) return {ok:true, msg:'Верно: ' + ls.text + ' ' + ls.u + ' = ' + b.text + ' ' + b.u + '.'};
+        if (t === ls.text) return {ok:false, msg:'Число не изменилось, а единица должна быть другой. ' + b.rule};
+        var pm = pow10Msg(t, b.v);
+        return {ok:false, msg:(pm ? 'Не то: ' + pm + '. ' : 'Не то. ') + b.rule};
+      }, function(){ return b.text; });
+      var su = mkSlot('unit', function(t){
+        if (t === b.u) return {ok:true, msg:'Верно: ответ записываем в ' + b.u + ', как просят в задаче.'};
+        return {ok:false, msg:'В задаче просят ответ в ' + b.u + '.'};
+      }, function(){ return b.u; });
+      row.appendChild(sv.el); row.appendChild(su.el); box.appendChild(row);
+    }
+  };
+}
+
+function buildStages(){
+  /* шаги создаются лениво: подстановка и расчёт зависят от порядка множителей, выбранного в формуле */
+  var M = [stageGiven, stageFind];
+  if (T.givens.some(function(g){ return g.conv; })) M.push(stageSI);
+  T.steps.forEach(function(s, k){
+    M.push(function(){ return stageFormula(k); }); M.push(function(){ return stageSubst(k); }); M.push(function(){ return stageCalc(k); });
+  });
+  if (T.back) M.push(stageBack);
+  makers = M; return new Array(M.length);
+}
+function stg(n){ if (!stages[n]) stages[n] = makers[n](); return stages[n]; }
+
+/* ======================= показ ======================= */
+function renderBank(){
+  var p = stg(st.stage).pool, bank = $('bank'); bank.innerHTML = '';
+  if (stg(st.stage).note) bank.appendChild(el('div', 'note', stg(st.stage).note));
+  ['letter', 'value', 'unit', 'op'].forEach(function(kind){
+    if (!p[kind] || !p[kind].length) return;
+    var g = el('div', 'grp');
+    shuffle(p[kind]).forEach(function(t){
+      var d = el('div', 'tile k-' + kind, t); d.setAttribute('data-text', t); d.setAttribute('data-kind', kind); g.appendChild(d);
+    });
+    bank.appendChild(g);
+  });
+}
+function renderBar(){
+  var bar = $('bar'); bar.innerHTML = '';
+  for (var i = 0; i < stages.length; i++) bar.appendChild(el('i', i < st.stage ? 'done' : i === st.stage ? 'on' : ''));
+}
+function goStage(n){
+  st.stage = n; st.hintLvl = 0; st.selected = null;
+  cur = {slots:[], done:false, extra:null};
+  var info = stg(n);
+  var blk = el('div', 'blk'); blk.appendChild(el('div', 'lbl', info.lbl));
+  var box = el('div', ''); blk.appendChild(box);
+  var old = $('fb'); if (old && old.parentNode) old.parentNode.removeChild(old);
+  var fbEl = el('div', 'fb'); fbEl.id = 'fb'; blk.appendChild(fbEl);
+  $('nb').appendChild(blk);
+  info.build(box);
+  $('step').innerHTML = '<b>Шаг ' + (n + 1) + ' из ' + stages.length + ' · ' + info.title + '.</b> ' + info.instr;
+  renderBar(); renderBank();
+  $('nextBtn').disabled = true; $('nextBtn').classList.remove('go'); $('hintBtn').disabled = false; $('hintBtn').textContent = '💡 Подсказка';
+  fitPadding();
+  setTimeout(function(){
+    var r = blk.getBoundingClientRect();
+    window.scrollTo({top: Math.max(0, window.scrollY + r.top - 150), behavior:'smooth'});
+  }, 60);
+}
+function openTask(i){
+  T = prepare(TASKS[i]); T.idx = i;
+  st = {stage:0, errors:0, hints:0, hintLvl:0, selected:null, finished:false};
+  stages = buildStages();
+  $('menu').hidden = true; $('task').hidden = false; $('panel').hidden = false;
+  $('tTitle').textContent = 'Задача ' + (i + 1) + ' из ' + TASKS.length + ' · ' + T.tag;
+  $('condText').innerHTML = T.html;
+  $('nb').innerHTML = '';
+  goStage(0);
+  window.scrollTo(0, 0);
+}
+function toMenu(){
+  $('task').hidden = true; $('panel').hidden = true; $('menu').hidden = false;
+  renderMenu(); fitPadding(); window.scrollTo(0, 0);
+}
+function finish(){
+  st.finished = true;
+  var ofb = $('fb'); if (ofb && ofb.parentNode) ofb.parentNode.removeChild(ofb);
+  var stars = st.errors <= 2 && st.hints <= 1 ? 3 : st.errors <= stages.length ? 2 : 1;
+  if (!PROG[T.idx] || PROG[T.idx] < stars) PROG[T.idx] = stars; saveProg();
+  var fin = T.final;
+  var f = el('div', 'final'), more = T.idx < TASKS.length - 1;
+  f.innerHTML = '<b class="big">🎉 Задача решена!</b>Ответ: <b>' + fin.l + ' ≈ ' + fin.text + ' ' + fin.u + '</b>' +
+    '<div class="stars">' + '★'.repeat(stars) + '☆'.repeat(3 - stars) + '</div>Ошибок: ' + st.errors + ', подсказок: ' + st.hints + '.' +
+    (T.note ? '<div class="note2">' + T.note + '</div>' : '') +
+    '<div class="acts">' + (more ? '<button class="btn pri" id="goNext">Следующая задача →</button>' : '') +
+    '<button class="btn" id="again">Решить заново</button><button class="btn" id="goMenu">К списку задач</button></div>';
+  $('nb').appendChild(f);
+  $('step').innerHTML = '<b>Готово.</b> Всё решение собрано плитка за плиткой.';
+  $('panel').hidden = true; fitPadding();
+  if (more) $('goNext').addEventListener('click', function(){ openTask(T.idx + 1); });
+  $('again').addEventListener('click', function(){ openTask(T.idx); });
+  $('goMenu').addEventListener('click', toMenu);
+  setTimeout(function(){ f.scrollIntoView({behavior:'smooth', block:'center'}); }, 60);
+}
+function renderMenu(){
+  var h = $('list'); h.innerHTML = '';
+  TASKS.forEach(function(t, i){
+    var b = el('button', 'mi'); b.type = 'button';
+    var hue = Math.round(130 - i * 13);
+    var s = PROG[i] || 0;
+    b.innerHTML = '<span class="no" style="background:hsl(' + hue + ',70%,62%)">' + (i + 1) + '</span><span class="tt"><b>' + t.tag + '</b><span>Уровень ' + (i + 1) + ' из ' + TASKS.length + '</span></span><span class="stars">' + (s ? '★'.repeat(s) + '☆'.repeat(3 - s) : '') + '</span>';
+    b.addEventListener('click', function(){ openTask(i); });
+    h.appendChild(b);
+  });
+}
+
+/* ======================= подсказки ======================= */
+function highlightExpected(){
+  var s = cur.slots.filter(function(x){ return !x.filled; })[0];
+  if (!s) return false;
+  var t = s.expect(); if (t == null) return false;
+  var tiles = $('bank').querySelectorAll('.tile'), found = false;
+  for (var i = 0; i < tiles.length; i++){
+    if (tiles[i].getAttribute('data-text') === t && tiles[i].getAttribute('data-kind') === s.kind){
+      tiles[i].classList.remove('pulse'); void tiles[i].offsetWidth; tiles[i].classList.add('pulse'); found = true;
+    }
+  }
+  s.el.classList.add('hover'); setTimeout(function(){ s.el.classList.remove('hover'); }, 2500);
+  return found;
+}
+function onHint(){
+  if (!cur || cur.done) return;
+  var info = stg(st.stage); st.hints++;
+  if (st.hintLvl < info.hints.length){ say('💡 Подсказка ' + (st.hintLvl + 1) + ': ' + info.hints[st.hintLvl], 'hint'); st.hintLvl++; }
+  else {
+    var pend = cur.slots.filter(function(x){ return !x.filled; })[0];
+    highlightExpected();
+    if (!pend && cur.extra && !cur.numOk) say('💡 Посчитай на калькуляторе и впиши число в поле.', 'hint');
+    else say('💡 Нужная плитка подсвечена, а ячейка мигает.', 'hint');
+  }
+  $('hintBtn').textContent = st.hintLvl >= info.hints.length ? '💡 Показать плитку' : '💡 Подсказка ' + (st.hintLvl + 1);
+}
+
+/* ======================= перетаскивание ======================= */
+var drag = null;
+function nearestSlot(x, y){
+  if (!cur) return null;
+  var best = null, bd = 1e9, limit = $('panel').getBoundingClientRect().top;
+  cur.slots.forEach(function(s){
+    if (s.filled) return;
+    var r = s.el.getBoundingClientRect();
+    if (r.bottom > limit + 10) return;
+    var dx = Math.max(r.left - x, 0, x - r.right), dy = Math.max(r.top - y, 0, y - r.bottom), d = Math.sqrt(dx * dx + dy * dy);
+    if (d < bd){ bd = d; best = s; }
+  });
+  return bd <= 44 ? best : null;
+}
+function setHover(s){
+  if (drag.hover === s) return;
+  if (drag.hover) drag.hover.el.classList.remove('hover');
+  drag.hover = s; if (s) s.el.classList.add('hover');
+}
+function clearSel(){ var t = $('bank').querySelectorAll('.tile.sel'); for (var i = 0; i < t.length; i++) t[i].classList.remove('sel'); st.selected = null; }
+$('bank').addEventListener('pointerdown', function(e){
+  var t = e.target.closest ? e.target.closest('.tile') : null;
+  if (!t) return;
+  e.preventDefault();
+  drag = {el:t, x0:e.clientX, y0:e.clientY, moved:false, ghost:null, hover:null, id:e.pointerId};
+  try{ t.setPointerCapture(e.pointerId); }catch(err){}
+});
+window.addEventListener('pointermove', function(e){
+  if (!drag || e.pointerId !== drag.id) return;
+  var dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+  if (!drag.moved && Math.sqrt(dx * dx + dy * dy) > 8){
+    drag.moved = true; drag.ghost = drag.el.cloneNode(true); drag.ghost.classList.add('ghost'); drag.ghost.classList.remove('sel');
+    document.body.appendChild(drag.ghost); drag.el.classList.add('lift');
+  }
+  if (drag.moved){
+    var gx = e.clientX, gy = e.clientY - 56;
+    drag.ghost.style.left = gx + 'px'; drag.ghost.style.top = gy + 'px';
+    setHover(nearestSlot(gx, gy)); e.preventDefault();
+  }
+});
+function endDrag(e, cancel){
+  if (!drag || e.pointerId !== drag.id) return;
+  var d = drag; drag = null;
+  d.el.classList.remove('lift');
+  if (d.ghost) d.ghost.parentNode.removeChild(d.ghost);
+  var text = d.el.getAttribute('data-text'), kind = d.el.getAttribute('data-kind');
+  if (d.hover) d.hover.el.classList.remove('hover');
+  if (cancel) return;
+  if (d.moved){ if (d.hover) place(d.hover, text, kind); }
+  else {
+    var was = d.el.classList.contains('sel'); clearSel();
+    if (!was){ d.el.classList.add('sel'); st.selected = {text:text, kind:kind}; say('Выбрано «' + text + '». Теперь нажми на ячейку, куда её положить.', 'info'); }
+  }
+}
+window.addEventListener('pointerup', function(e){ endDrag(e, false); });
+window.addEventListener('pointercancel', function(e){ endDrag(e, true); });
+$('nb').addEventListener('click', function(e){
+  var s = e.target.closest ? e.target.closest('.slot') : null;
+  if (!s || !s._slot) return;
+  if (st.selected && !s._slot.filled && !cur.done){ var sel = st.selected; clearSel(); place(s._slot, sel.text, sel.kind); }
+  else if (!s._slot.filled && !st.selected) say('Сначала нажми на плитку внизу (или перетащи её сюда пальцем).', 'info');
+});
+$('hintBtn').addEventListener('click', onHint);
+$('nextBtn').addEventListener('click', function(){ if (cur && cur.done && st.stage < stages.length - 1) goStage(st.stage + 1); });
+$('toMenu').addEventListener('click', toMenu);
+window.addEventListener('resize', fitPadding);
+
+loadProg(); renderMenu();
+window.__k = {TASKS:TASKS, open:openTask, place:place, prepare:prepare, FM:FM, fmt:fmt,
+  get cur(){ return cur; }, get st(){ return st; }, get T(){ return T; }, get stages(){ return stages; }};
+})();
+</script>
+</body>
+</html>
