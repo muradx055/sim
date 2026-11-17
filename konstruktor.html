@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Конструктор решения задачи: скорость</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;min-height:100vh;background:#0d1326;color:#eaf0ff;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:620px;padding:16px 14px 300px}
+  a.back{color:#8fb0ff;text-decoration:none;font-size:15px}
+  h1{font-size:22px;margin:8px 2px 4px}
+  .how{margin:0 2px 12px;color:#9aa8d4;font-size:14px;line-height:1.45}
+  .cond{background:#151d3a;border:1px solid #2a3566;border-radius:14px;padding:12px 14px;font-size:18px;line-height:1.5;margin-bottom:12px}
+  .cond .lab{font-size:12px;color:#8fb0ff;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+  .hl{color:#ffd166;font-weight:600}
+  .hq{color:#9df0b8;font-weight:600}
+  .step{background:#18284f;border:1px solid #4a68c4;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:16px;line-height:1.45}
+  .step b{color:#fff}
+  .bar{display:flex;gap:6px;margin-bottom:8px}
+  .bar i{flex:1;height:6px;border-radius:3px;background:#2a3566}
+  .bar i.on{background:#5b82ff}
+  .bar i.done{background:#2ecc71}
+  .nb{background:#121a35;border:1px solid #2a3566;border-radius:14px;padding:6px 14px 10px}
+  .blk{padding:10px 0;border-bottom:1px dashed #2a3566}
+  .blk:last-child{border-bottom:none}
+  .blk .lbl{font-size:14px;color:#8fb0ff;margin-bottom:8px;font-weight:600}
+  .row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:6px 0;font-size:22px}
+  .st{font-size:22px;white-space:nowrap}
+  .slot{min-width:54px;height:52px;padding:0 10px;border:2px dashed #5666a8;border-radius:10px;display:inline-flex;
+    align-items:center;justify-content:center;font-size:22px;color:#eaf0ff;background:#0d1326;transition:background .15s,border-color .15s}
+  .slot.k-letter{border-color:#4f7bff}
+  .slot.k-value{border-color:#c9972b}
+  .slot.k-unit{border-color:#9a66e0}
+  .slot.k-op{border-color:#8794c4;min-width:48px}
+  .slot.hover{background:#2a2410;border-color:#ffd166;transform:scale(1.06)}
+  .slot.ok{border-style:solid;border-color:#2e8f55;background:#12351f;color:#c9f5d9}
+  .slot.bad{border-color:#e0556a;background:#3a1a1f;animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .frac{display:inline-flex;flex-direction:column;align-items:center;gap:4px}
+  .frac .fr{display:flex;gap:6px;align-items:center}
+  .frac .fbar{height:3px;width:100%;background:#eaf0ff;border-radius:2px}
+  .num-in{width:120px;height:52px;font-size:22px;padding:0 10px;border-radius:10px;border:2px solid #c9972b;background:#0d1326;color:#fff;font-family:inherit}
+  .num-in.ok{border-color:#2e8f55;background:#12351f;color:#c9f5d9}
+  .num-in.bad{border-color:#e0556a;background:#3a1a1f;animation:shake .4s}
+  .chk{height:52px;padding:0 16px;border-radius:10px;border:1px solid #5b82ff;background:#2f55c8;color:#fff;font-size:17px;font-family:inherit;cursor:pointer}
+  .chk:disabled{opacity:.4}
+  #panel{position:fixed;left:0;right:0;bottom:0;background:rgba(13,19,38,.97);border-top:1px solid #2a3566;
+    padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:20}
+  #panel .in{width:100%;max-width:620px}
+  .fb{border-radius:10px;padding:9px 12px;font-size:16px;line-height:1.45;margin-top:10px;display:none}
+  .fb.ok{display:block;background:#12351f;border:1px solid #2e8f55;color:#c9f5d9}
+  .fb.bad{display:block;background:#3a1a1f;border:1px solid #b34a58;color:#ffd5da}
+  .fb.info{display:block;background:#18284f;border:1px solid #4a68c4;color:#dbe4ff}
+  .fb.hint{display:block;background:#2a2410;border:1px solid #8a7425;color:#ffeaa0}
+  .bank{display:flex;flex-direction:column;gap:6px;align-items:center;margin-bottom:8px}
+  .grp{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+  .note{font-size:12px;color:#9aa8d4;text-align:center}
+  .tile{min-width:46px;height:44px;padding:0 10px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;
+    font-size:20px;color:#fff;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+    box-shadow:0 2px 0 rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18)}
+  .tile.k-letter{background:#2f55c8}
+  .tile.k-value{background:#8a6a12}
+  .tile.k-unit{background:#6b3fb0}
+  .tile.k-op{background:#4a5578}
+  .tile.sel{outline:3px solid #ffd166}
+  .tile.lift{opacity:.35}
+  .tile.pulse{animation:pulse .7s 4;outline:3px solid #9df0b8}
+  @keyframes pulse{50%{transform:scale(1.18)}}
+  .tile.ghost{position:fixed;transform:translate(-50%,-50%) scale(1.15);pointer-events:none;z-index:60;box-shadow:0 8px 20px rgba(0,0,0,.5);opacity:.95}
+  .btns{display:flex;gap:8px}
+  .btn{flex:1;height:44px;border-radius:10px;border:1px solid #3a4a8c;background:#1c2750;color:#eaf0ff;font-size:16px;font-family:inherit;cursor:pointer;touch-action:manipulation}
+  .btn.pri{background:#2f55c8;border-color:#5b82ff}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.go{animation:glow 1.2s infinite}
+  @keyframes glow{50%{box-shadow:0 0 0 4px rgba(91,130,255,.45)}}
+  .final{margin-top:12px;background:#12351f;border:1px solid #2e8f55;border-radius:14px;padding:14px;font-size:17px;line-height:1.5;color:#d6f8e2}
+  .final b.big{display:block;font-size:22px;margin-bottom:6px}
+  .final .stars{font-size:26px;letter-spacing:4px;margin:6px 0}
+  .final .acts{display:flex;gap:8px;margin-top:10px}
+  .final a.btn{display:flex;align-items:center;justify-content:center;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <a class="back" href="index.html">← Все симуляции</a>
+  <h1>Конструктор решения: скорость</h1>
+  <p class="how">Собери решение из плиток. Перетащи плитку пальцем в ячейку (или нажми плитку, потом ячейку). Программа сразу скажет, верно или нет, и объяснит ошибку.</p>
+
+  <div class="cond"><div class="lab">Задача</div><div id="condText"></div></div>
+
+  <div class="bar" id="bar"></div>
+  <div class="step" id="step"></div>
+
+  <div class="nb" id="nb"></div>
+</div>
+
+<div id="panel"><div class="in">
+  <div class="bank" id="bank"></div>
+  <div class="btns">
+    <button class="btn" id="hintBtn">💡 Подсказка</button>
+    <button class="btn pri" id="nextBtn" disabled>Дальше →</button>
+  </div>
+</div></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= данные задачи ================= */
+var TASK = {
+  textHTML: 'Скорая помощь проехала <b class="hl">4,2 км</b> за <b class="hl">6 мин</b>. <b class="hq">С какой скоростью она ехала?</b> Считай скорость постоянной.',
+  question: 'С какой скоростью она ехала?',
+  letters: {v:'скорость', s:'путь', t:'время', m:'масса', F:'сила', 'ρ':'плотность'},
+  givens: [
+    {letter:'s', name:'путь', value:'4,2', unit:'км',
+     si:{value:'4200', unit:'м', hint:'В СИ путь измеряют в метрах.'},
+     wrong:{'420':'Умножили на 100. Но в одном километре не 100 метров.',
+            '42':'Умножили на 10. Но в одном километре не 10 метров.',
+            '0,0042':'Число стало меньше. Но метров больше, чем километров, значит число должно стать больше.'}},
+    {letter:'t', name:'время', value:'6', unit:'мин',
+     si:{value:'360', unit:'с', hint:'В СИ время измеряют в секундах.'},
+     wrong:{'60':'60 секунд — это одна минута, а у нас 6 минут.',
+            '600':'Умножили на 100. Но в одной минуте не 100 секунд.',
+            '0,1':'0,1 — это время в часах (6 мин = 0,1 ч). А в СИ время измеряют в секундах.'}}
+  ],
+  find: {letter:'v', name:'скорость', unit:'м/с'},
+  formula: {
+    rhs: ['s','/','t'],
+    wrong: [
+      {s:'s — это путь. Слева пишем то, что ищем: скорость.', t:'t — это время. Слева пишем то, что ищем: скорость.', def:'Слева пишем величину, которую ищем.'},
+      {t:'Время сверху? Скорость показывает, сколько пути проходит тело за единицу времени. Что тогда должно быть сверху?', v:'v — это скорость, она уже стоит слева.', def:'В формуле скорости участвуют только путь и время.'},
+      {'·':'Умножение даст не скорость. Скорость показывает, сколько метров тело проходит за 1 секунду, значит путь нужно разделить на время.',
+       '+':'Складывать путь и время нельзя: это разные величины.', '−':'Вычитать путь и время нельзя: это разные величины.'},
+      {s:'Путь уже стоит сверху. Внизу должна быть вторая величина.', v:'v — это скорость, она уже стоит слева.', def:'Внизу стоит вторая величина из условия.'}
+    ]
+  },
+  answer: 4200 / 360,
+  answerText: '11,67',
+  pools: {
+    given:   {letter:['v','s','t','m','F','ρ'], value:['4,2','6','42','2,4'], unit:['км','мин','с','м','ч']},
+    find:    {letter:['v','s','t','m','F','ρ']},
+    si:      {value:['4200','420','42','0,0042','360','60','600','0,1','4,2','6'], unit:['м','км','с','мин','ч']},
+    formula: {letter:['v','s','t','m'], op:['/','·','+','−']},
+    subst:   {value:['4200','360','4,2','6','420','60'], unit:['м','км','с','мин','ч']},
+    calc:    {unit:['м/с','км/ч','м','с']}
+  }
+};
+
+var STAGE_INFO = [
+  {lbl:'Дано:', title:'Дано',
+   instr:'Для каждой величины из условия перетащи в строку букву, число и единицу измерения.',
+   hints:['Прочитай условие: что проехала скорая и за какое время? Путь обозначают буквой s, время — буквой t.',
+          'В одной строке пишем путь: 4,2 км. В другой — время: 6 мин. Единицы пиши так, как в условии.'],
+   done:'Дано записано: путь s = 4,2 км, время t = 6 мин. Всё, что известно из условия, записываем с единицами измерения.'},
+  {lbl:'Найти:', title:'Найти',
+   instr:'Какой буквой обозначается величина, которую нужно найти?',
+   hints:['Перечитай вопрос задачи: «С какой скоростью она ехала?». Что здесь ищут?',
+          'Скорость обозначается буквой v.'],
+   done:'Найти: v — скорость. Это то, о чём спрашивает задача.'},
+  {lbl:'СИ:', title:'Перевод в СИ',
+   instr:'Переведи числа в основные единицы СИ: путь — в метры, время — в секунды.',
+   hints:['Сколько метров в одном километре? Сколько секунд в одной минуте?',
+          '1 км = 1000 м, значит 4,2 км = 4,2 · 1000 м. 1 мин = 60 с, значит 6 мин = 6 · 60 с.'],
+   done:'Перевели в СИ: 4,2 км = 4200 м и 6 мин = 360 с. В формулу подставляем только значения в СИ, тогда ответ получится в м/с.'},
+  {lbl:'Формула:', title:'Формула',
+   instr:'Собери формулу скорости: слева то, что ищем, справа выражение из двух величин.',
+   hints:['Скорость показывает, сколько пути проходит тело за единицу времени.',
+          'Чтобы узнать, сколько пути приходится на 1 секунду, путь делят на время: v = s / t.'],
+   done:'Скорость — это путь, делённый на время: v = s / t. Она показывает, сколько метров тело проходит за 1 секунду.'},
+  {lbl:'Решение:', title:'Подстановка',
+   instr:'Подставь в формулу числа в СИ вместе с единицами. Путь сверху, время снизу.',
+   hints:['Бери числа, которые получились на шаге «СИ», а не из условия.',
+          'Сверху путь в метрах, снизу время в секундах.'],
+   done:'Подставили значения в СИ: v = 4200 м / 360 с. Осталось посчитать.'},
+  {lbl:'Ответ:', title:'Расчёт',
+   instr:'Посчитай на калькуляторе 4200 : 360 и впиши число. Потом выбери единицу измерения.',
+   hints:['Раздели 4200 на 360. Округли до сотых.',
+          'Должно получиться около 11,67. Скорость в СИ измеряется в метрах в секунду.'],
+   done:''}
+];
+
+/* ================= утилиты ================= */
+var $ = function(id){ return document.getElementById(id); };
+function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function shuffle(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function byLetter(l){ for (var i = 0; i < TASK.givens.length; i++) if (TASK.givens[i].letter === l) return TASK.givens[i]; return null; }
+var ACC = {letter:'букву', value:'число', unit:'единицу измерения', op:'знак действия'};
+
+/* ================= состояние ================= */
+var st, cur;
+function resetState(){ st = {stage:0, errors:0, hints:0, hintLvl:0, selected:null, finished:false}; cur = null; }
+
+function say(msg, cls){
+  var f = $('fb'); if (!f) return;
+  f.className = 'fb' + (cls ? ' ' + cls : ''); f.textContent = msg || '';
+  fitPadding();
+  if (msg) setTimeout(function(){ reveal(f); }, 30);
+}
+function reveal(f){
+  var r = f.getBoundingClientRect(), top = $('panel').getBoundingClientRect().top;
+  if (r.bottom > top - 8) window.scrollBy({top: r.bottom - top + 16, behavior:'smooth'});
+  else if (r.top < 8) window.scrollBy({top: r.top - 16, behavior:'smooth'});
+}
+function fitPadding(){ $('wrap').style.paddingBottom = ($('panel').offsetHeight + 24) + 'px'; }
+
+/* ================= ячейки ================= */
+function mkSlot(kind, check, expect){
+  var s = {kind:kind, check:check, expect:expect, filled:false, el:el('span', 'slot k-' + kind)};
+  s.el._slot = s; cur.slots.push(s); return s;
+}
+function flashBad(node){ node.classList.remove('bad'); void node.offsetWidth; node.classList.add('bad'); setTimeout(function(){ node.classList.remove('bad'); }, 600); }
+
+function place(slot, text, kind){
+  if (!cur || slot.filled || cur.done) return;
+  if (kind !== slot.kind){
+    st.errors++; flashBad(slot.el);
+    say('В эту ячейку нужно поставить ' + ACC[slot.kind] + '.', 'bad'); return;
+  }
+  var r = slot.check(text);
+  if (r.ok){
+    slot.filled = true; slot.el.textContent = text; slot.el.classList.add('ok');
+    say(r.msg || 'Верно!', 'ok');
+    checkStageDone();
+  } else {
+    st.errors++; flashBad(slot.el);
+    say(r.msg, 'bad');
+  }
+}
+function checkStageDone(){
+  if (!cur.slots.every(function(s){ return s.filled; })) return;
+  if (cur.extra && !cur.extra()) return;
+  cur.done = true;
+  if (st.stage === STAGE_INFO.length - 1){ finish(); return; }
+  say('✅ ' + STAGE_INFO[st.stage].done, 'ok');
+  $('nextBtn').disabled = false; $('nextBtn').classList.add('go');
+  $('hintBtn').disabled = true;
+  var bars = $('bar').children; bars[st.stage].className = 'done';
+}
+
+/* ================= проверки по шагам ================= */
+function matches(g, type, t){ return type === 'letter' ? g.letter === t : type === 'value' ? g.value === t : g.unit === t; }
+function prop(g, type){ return type === 'letter' ? g.letter : type === 'value' ? g.value : g.unit; }
+
+function buildGiven(box){
+  var G = TASK.givens, claimed = {};
+  function siHas(type, t){ return G.some(function(g){ return type === 'value' ? g.si.value === t : g.si.unit === t; }); }
+  function check(line, type, t){
+    if (line.id == null){
+      for (var i = 0; i < G.length; i++) if (!claimed[i] && matches(G[i], type, t)){ line.id = i; claimed[i] = true; return {ok:true, msg:okMsg(G[i], type, t)}; }
+      for (var j = 0; j < G.length; j++) if (claimed[j] && matches(G[j], type, t)) return {ok:false, msg:'Это уже записано в другой строке.'};
+      if (type === 'letter'){
+        if (t === TASK.find.letter) return {ok:false, msg:t + ' — это ' + TASK.find.name + '. Но её нужно найти, а в «Дано» пишем только то, что известно из условия.'};
+        return {ok:false, msg:'В условии нет величины «' + TASK.letters[t] + '». Перечитай задачу: что в ней известно?'};
+      }
+      if (type === 'value') return {ok:false, msg: siHas('value', t) ? 'Это число получится позже, после перевода в СИ. Сейчас пиши числа из условия.' : 'Такого числа нет в условии. Перечитай задачу.'};
+      return {ok:false, msg: siHas('unit', t) ? 'Эта единица понадобится позже, при переводе в СИ. Сейчас пиши единицы из условия.' : 'Такой единицы нет в условии.'};
+    }
+    var g = G[line.id];
+    if (matches(g, type, t)) return {ok:true, msg:okMsg(g, type, t)};
+    var o = null;
+    for (var k = 0; k < G.length; k++) if (k !== line.id && matches(G[k], type, t)) o = G[k];
+    if (type === 'letter'){
+      if (o) return {ok:false, msg:'Эта строка про величину «' + g.name + '». Буква ' + t + ' означает «' + o.name + '», для неё отдельная строка.'};
+      if (t === TASK.find.letter) return {ok:false, msg:t + ' — это ' + TASK.find.name + ', её ищем. Здесь нужна буква величины «' + g.name + '».'};
+      return {ok:false, msg:'Величины «' + TASK.letters[t] + '» в условии нет. Здесь нужна буква для величины «' + g.name + '».'};
+    }
+    if (type === 'value'){
+      if (o) return {ok:false, msg:'Число ' + t + ' — это ' + o.name + ' (' + o.value + ' ' + o.unit + '). А эта строка про величину «' + g.name + '».'};
+      if (siHas('value', t)) return {ok:false, msg:'Это число в СИ, оно понадобится позже. Сейчас нужно число из условия для величины «' + g.name + '».'};
+      return {ok:false, msg:'Такого числа в условии нет. Какое число относится к величине «' + g.name + '»?'};
+    }
+    if (o) return {ok:false, msg:'Единица «' + t + '» относится к величине «' + o.name + '». Здесь нужна единица для величины «' + g.name + '».'};
+    if (siHas('unit', t)) return {ok:false, msg:'В условии эта величина дана в других единицах. Перевод в СИ будет на шаге 3, сейчас пиши, как в условии.'};
+    return {ok:false, msg:'Единица должна быть такой, как в условии.'};
+  }
+  function okMsg(g, type, t){
+    if (type === 'letter') return 'Верно: ' + t + ' — это ' + g.name + '.';
+    if (type === 'value') return 'Верно: ' + t + ' — число из условия.';
+    return 'Верно: единица записана как в условии.';
+  }
+  var lines = [];
+  G.forEach(function(){
+    var line = {id:null}; lines.push(line);
+    var row = el('div', 'row');
+    [['letter'], ['='], ['value'], ['unit']].forEach(function(p){
+      if (p[0] === '=') { row.appendChild(el('span', 'st', '=')); return; }
+      var type = p[0];
+      var s = mkSlot(type, function(t){ return check(line, type, t); }, function(){
+        if (line.id != null) return prop(G[line.id], type);
+        for (var i = 0; i < G.length; i++) if (!claimed[i]) return prop(G[i], type);
+        return null;
+      });
+      row.appendChild(s.el);
+    });
+    box.appendChild(row);
+  });
+}
+
+function buildFind(box){
+  var row = el('div', 'row');
+  var s = mkSlot('letter', function(t){
+    if (t === TASK.find.letter) return {ok:true, msg:'Верно: ' + t + ' — это ' + TASK.find.name + '.'};
+    var g = byLetter(t);
+    if (g) return {ok:false, msg:t + ' — это ' + g.name + ', оно уже дано. Вопрос задачи: «' + TASK.question + '» Что именно ищут?'};
+    return {ok:false, msg:t + ' — это «' + TASK.letters[t] + '». Вопрос задачи: «' + TASK.question + '» Что в нём ищут?'};
+  }, function(){ return TASK.find.letter; });
+  row.appendChild(s.el); row.appendChild(el('span', 'st', '— ?'));
+  box.appendChild(row);
+}
+
+function buildSI(box){
+  TASK.givens.forEach(function(g){
+    var row = el('div', 'row');
+    row.appendChild(el('span', 'st', g.letter + ' = ' + g.value + ' ' + g.unit + ' ='));
+    var sv = mkSlot('value', function(t){
+      if (t === g.si.value) return {ok:true, msg:'Верно: ' + g.value + ' ' + g.unit + ' = ' + g.si.value + ' ' + g.si.unit + '.'};
+      if (g.wrong[t]) return {ok:false, msg:g.wrong[t]};
+      if (t === g.value) return {ok:false, msg:'Число не изменилось: это всё ещё ' + g.value + ' ' + g.unit + '. Нужно перевести в ' + g.si.unit + '.'};
+      var o = null; TASK.givens.forEach(function(x){ if (x !== g && (x.value === t || x.si.value === t)) o = x; });
+      if (o) return {ok:false, msg:'Это число для величины «' + o.name + '». А здесь переводим величину «' + g.name + '».'};
+      return {ok:false, msg:'Это не тот результат перевода. Проверь, на сколько нужно умножить число.'};
+    }, function(){ return g.si.value; });
+    var su = mkSlot('unit', function(t){
+      if (t === g.si.unit) return {ok:true, msg:'Верно: ' + g.si.hint};
+      if (t === g.unit) return {ok:false, msg:'Единицу тоже нужно перевести. ' + g.si.hint};
+      var o = null; TASK.givens.forEach(function(x){ if (x !== g && (x.unit === t || x.si.unit === t)) o = x; });
+      if (o) return {ok:false, msg:'Это единица величины «' + o.name + '». ' + g.si.hint};
+      return {ok:false, msg:'Это не единица СИ для этой величины. ' + g.si.hint};
+    }, function(){ return g.si.unit; });
+    row.appendChild(sv.el); row.appendChild(su.el);
+    box.appendChild(row);
+  });
+}
+
+function buildFormula(box){
+  var F = TASK.formula, row = el('div', 'row');
+  function wrongMsg(i, t){
+    var tab = F.wrong[i];
+    if (tab[t]) return tab[t];
+    if (TASK.letters[t] && !byLetter(t) && t !== TASK.find.letter) return 'В этой задаче нет величины «' + TASK.letters[t] + '».';
+    return tab.def || 'Не подходит. Подумай, какая величина должна быть здесь.';
+  }
+  var exp = [TASK.find.letter, F.rhs[0], F.rhs[1], F.rhs[2]], kinds = ['letter','letter','op','letter'];
+  var okm = ['Верно: слева — то, что ищем.', 'Верно: путь сверху.', 'Верно: путь делят на время.', 'Верно: время снизу.'];
+  var slots = [];
+  for (var i = 0; i < 4; i++) (function(i){
+    var s = mkSlot(kinds[i], function(t){
+      return t === exp[i] ? {ok:true, msg:okm[i]} : {ok:false, msg:wrongMsg(i, t)};
+    }, function(){ return exp[i]; });
+    slots.push(s);
+  })(i);
+  row.appendChild(slots[0].el); row.appendChild(el('span', 'st', '='));
+  row.appendChild(slots[1].el); row.appendChild(slots[2].el); row.appendChild(slots[3].el);
+  box.appendChild(row);
+}
+
+function buildSubst(box){
+  var F = TASK.formula, top = byLetter(F.rhs[0]), bot = byLetter(F.rhs[2]);
+  var row = el('div', 'row');
+  row.appendChild(el('span', 'st', TASK.find.letter + ' ='));
+  var frac = el('span', 'frac'), r1 = el('span', 'fr'), r2 = el('span', 'fr');
+  function mk(q, type, where){
+    return mkSlot(type, function(t){
+      var good = type === 'value' ? q.si.value : q.si.unit;
+      if (t === good) return {ok:true, msg:'Верно.'};
+      var raw = type === 'value' ? q.value : q.unit;
+      if (t === raw) return {ok:false, msg:'Это ' + (type === 'value' ? 'число' : 'единица') + ' до перевода. В формулу подставляем значения в СИ — те, что получили на шаге 3.'};
+      var o = null; TASK.givens.forEach(function(x){ if (x !== q && (x.value === t || x.si.value === t || x.unit === t || x.si.unit === t)) o = x; });
+      if (o) return {ok:false, msg:'Это относится к величине «' + o.name + '». Здесь нужна величина «' + q.name + '»: в формуле она стоит ' + where + '.'};
+      return {ok:false, msg:'Такого здесь быть не должно. Возьми значения из шага 3.'};
+    }, function(){ return type === 'value' ? q.si.value : q.si.unit; });
+  }
+  var a = mk(top, 'value', 'сверху'), b = mk(top, 'unit', 'сверху'), c = mk(bot, 'value', 'снизу'), d = mk(bot, 'unit', 'снизу');
+  r1.appendChild(a.el); r1.appendChild(b.el); r2.appendChild(c.el); r2.appendChild(d.el);
+  frac.appendChild(r1); frac.appendChild(el('span', 'fbar')); frac.appendChild(r2);
+  row.appendChild(frac); box.appendChild(row);
+}
+
+function buildCalc(box){
+  var top = byLetter(TASK.formula.rhs[0]), bot = byLetter(TASK.formula.rhs[2]);
+  var row = el('div', 'row');
+  row.appendChild(el('span', 'st', TASK.find.letter + ' ='));
+  var frac = el('span', 'frac');
+  var r1 = el('span', 'fr'), r2 = el('span', 'fr');
+  r1.appendChild(el('span', 'st', top.si.value + ' ' + top.si.unit));
+  r2.appendChild(el('span', 'st', bot.si.value + ' ' + bot.si.unit));
+  frac.appendChild(r1); frac.appendChild(el('span', 'fbar')); frac.appendChild(r2);
+  row.appendChild(frac); row.appendChild(el('span', 'st', '≈'));
+  var inp = el('input', 'num-in'); inp.setAttribute('inputmode', 'decimal'); inp.setAttribute('autocomplete', 'off'); inp.setAttribute('placeholder', '?');
+  var btn = el('button', 'chk', 'Проверить'); btn.type = 'button';
+  var us = mkSlot('unit', function(t){
+    if (t === TASK.find.unit) return {ok:true, msg:'Верно: скорость в СИ измеряется в метрах в секунду.'};
+    if (t === 'км/ч') return {ok:false, msg:'км/ч — не единица СИ. Мы считали в метрах и секундах, значит единица другая.'};
+    if (t === 'м') return {ok:false, msg:'Метр — единица пути, а не скорости. Скорость — это метры за секунду.'};
+    if (t === 'с') return {ok:false, msg:'Секунда — единица времени. Скорость измеряют в метрах за секунду.'};
+    return {ok:false, msg:'Не подходит. Единица скорости строится из единицы пути и единицы времени.'};
+  }, function(){ return TASK.find.unit; });
+  cur.numOk = false; cur.wrongNum = 0;
+  cur.extra = function(){ return cur.numOk; };
+  function submit(){
+    if (cur.numOk || cur.done) return;
+    var raw = inp.value.replace(/\s/g, '').replace(',', '.'), x = raw === '' ? NaN : Number(raw);
+    if (!isFinite(x)){ say('Впиши число. Можно с запятой, например 11,67.', 'info'); return; }
+    if (Math.abs(x - TASK.answer) <= 0.01 * TASK.answer){
+      cur.numOk = true; inp.classList.add('ok'); inp.disabled = true; btn.disabled = true;
+      say('Верно: 4200 ÷ 360 ≈ ' + TASK.answerText + '.', 'ok'); checkStageDone();
+    } else {
+      st.errors++; cur.wrongNum++; flashBad(inp);
+      var m;
+      if (Math.abs(x - 42) < 0.5) m = '42 — это скорость в км/ч (4,2 км за 0,1 ч). А мы подставляли метры и секунды, поэтому число должно быть меньше.';
+      else if (Math.abs(x - bot.si.value.replace(',', '.') / top.si.value.replace(',', '.')) < 0.002) m = 'Ты разделил(а) наоборот: время на путь. Скорость — это путь, делённый на время: 4200 ÷ 360.';
+      else if (Math.abs(x - 4.2 / 6) < 0.02) m = 'Похоже, ты поделил(а) 4,2 на 6. Но мы подставили числа в СИ: нужно 4200 ÷ 360.';
+      else m = 'Не совпало. Проверь деление на калькуляторе: 4200 ÷ 360. Ответ округли до сотых.';
+      if (cur.wrongNum >= 3 && st.hintLvl === 0) m += ' Можно взять подсказку.';
+      say(m, 'bad');
+    }
+  }
+  btn.addEventListener('click', submit);
+  inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') submit(); });
+  row.appendChild(inp); row.appendChild(us.el); row.appendChild(btn);
+  box.appendChild(row);
+}
+
+var BUILDERS = [buildGiven, buildFind, buildSI, buildFormula, buildSubst, buildCalc];
+var POOLS = ['given','find','si','formula','subst','calc'];
+
+/* ================= показ шагов ================= */
+function renderBank(){
+  var p = TASK.pools[POOLS[st.stage]], bank = $('bank'); bank.innerHTML = '';
+  if (st.stage === 5) bank.appendChild(el('div', 'note', 'Число впиши в поле, единицу перетащи в ячейку'));
+  ['letter','value','unit','op'].forEach(function(kind){
+    if (!p[kind]) return;
+    var g = el('div', 'grp');
+    shuffle(p[kind]).forEach(function(t){
+      var d = el('div', 'tile k-' + kind, t); d.setAttribute('data-text', t); d.setAttribute('data-kind', kind); g.appendChild(d);
+    });
+    bank.appendChild(g);
+  });
+}
+function renderBar(){
+  var bar = $('bar'); bar.innerHTML = '';
+  for (var i = 0; i < STAGE_INFO.length; i++){
+    var b = el('i', i < st.stage ? 'done' : i === st.stage ? 'on' : ''); bar.appendChild(b);
+  }
+}
+function goStage(n){
+  st.stage = n; st.hintLvl = 0; st.selected = null;
+  cur = {slots:[], done:false, extra:null};
+  var info = STAGE_INFO[n];
+  var blk = el('div', 'blk'); blk.appendChild(el('div', 'lbl', info.lbl));
+  var box = el('div', ''); blk.appendChild(box);
+  var oldFb = $('fb'); if (oldFb && oldFb.parentNode) oldFb.parentNode.removeChild(oldFb);
+  var fbEl = el('div', 'fb'); fbEl.id = 'fb'; blk.appendChild(fbEl);
+  $('nb').appendChild(blk);
+  BUILDERS[n](box);
+  $('step').innerHTML = '<b>Шаг ' + (n + 1) + ' из ' + STAGE_INFO.length + ' · ' + info.title + '.</b> ' + info.instr;
+  renderBar(); renderBank();
+  $('nextBtn').disabled = true; $('nextBtn').classList.remove('go'); $('hintBtn').disabled = false;
+  $('hintBtn').textContent = '💡 Подсказка';
+  say('', ''); fitPadding();
+  setTimeout(function(){
+    var r = blk.getBoundingClientRect(), target = window.scrollY + r.top - 150;
+    window.scrollTo({top: Math.max(0, target), behavior: 'smooth'});
+  }, 60);
+}
+function finish(){
+  st.finished = true;
+  var ofb = $('fb'); if (ofb && ofb.parentNode) ofb.parentNode.removeChild(ofb);
+  $('bar').childNodes.forEach(function(b){ b.className = 'done'; });
+  var stars = st.errors <= 2 && st.hints <= 1 ? 3 : st.errors <= 6 ? 2 : 1;
+  var f = el('div', 'final');
+  f.innerHTML = '<b class="big">🎉 Задача решена!</b>Скорая ехала со скоростью около <b>' + TASK.answerText + ' м/с</b> — это примерно 42 км/ч.' +
+    '<div class="stars">' + '★'.repeat(stars) + '☆'.repeat(3 - stars) + '</div>' +
+    'Ошибок: ' + st.errors + ', подсказок: ' + st.hints + '.' +
+    '<div class="acts"><button class="btn pri" id="again">Решить заново</button><a class="btn" href="index.html">Другие симуляции</a></div>';
+  $('nb').appendChild(f);
+  $('step').innerHTML = '<b>Готово.</b> Всё решение собрано: Дано → Найти → СИ → Формула → Подстановка → Ответ.';
+  $('panel').style.display = 'none'; $('wrap').style.paddingBottom = '40px';
+  $('again').addEventListener('click', restart);
+  setTimeout(function(){ f.scrollIntoView({behavior:'smooth', block:'center'}); }, 60);
+}
+function restart(){
+  $('nb').innerHTML = ''; $('panel').style.display = ''; resetState(); goStage(0);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ================= подсказки ================= */
+function highlightExpected(){
+  var s = cur.slots.filter(function(x){ return !x.filled; })[0];
+  if (!s) return false;
+  var t = s.expect();
+  if (t == null) return false;
+  var tiles = $('bank').querySelectorAll('.tile'), found = false;
+  for (var i = 0; i < tiles.length; i++){
+    if (tiles[i].getAttribute('data-text') === t && tiles[i].getAttribute('data-kind') === s.kind){
+      tiles[i].classList.remove('pulse'); void tiles[i].offsetWidth; tiles[i].classList.add('pulse'); found = true;
+    }
+  }
+  s.el.classList.add('hover'); setTimeout(function(){ s.el.classList.remove('hover'); }, 2500);
+  return found;
+}
+function onHint(){
+  if (!cur || cur.done) return;
+  var info = STAGE_INFO[st.stage];
+  st.hints++;
+  if (st.hintLvl < info.hints.length){
+    say('💡 Подсказка ' + (st.hintLvl + 1) + ': ' + info.hints[st.hintLvl], 'hint'); st.hintLvl++;
+  } else {
+    var s = cur.slots.filter(function(x){ return !x.filled; })[0];
+    if (st.stage === 5 && !cur.numOk && (!s || true)){
+      if (!cur.numOk){ say('💡 Вычисли 4200 ÷ 360 и впиши ответ в поле.', 'hint'); }
+    }
+    highlightExpected();
+    if (st.stage !== 5 || cur.numOk) say('💡 Нужная плитка подсвечена, а ячейка мигает.', 'hint');
+  }
+  if (st.hintLvl >= info.hints.length) $('hintBtn').textContent = '💡 Показать плитку';
+  else $('hintBtn').textContent = '💡 Подсказка ' + (st.hintLvl + 1);
+}
+
+/* ================= перетаскивание ================= */
+var drag = null;
+function nearestSlot(x, y){
+  if (!cur) return null;
+  var best = null, bd = 1e9, limit = $('panel').getBoundingClientRect().top;
+  cur.slots.forEach(function(s){
+    if (s.filled) return;
+    var r = s.el.getBoundingClientRect();
+    if (r.bottom > limit + 10) return;
+    var dx = Math.max(r.left - x, 0, x - r.right), dy = Math.max(r.top - y, 0, y - r.bottom), d = Math.sqrt(dx * dx + dy * dy);
+    if (d < bd){ bd = d; best = s; }
+  });
+  return bd <= 44 ? best : null;
+}
+function setHover(s){
+  if (drag.hover === s) return;
+  if (drag.hover) drag.hover.el.classList.remove('hover');
+  drag.hover = s; if (s) s.el.classList.add('hover');
+}
+function clearSel(){
+  var t = $('bank').querySelectorAll('.tile.sel'); for (var i = 0; i < t.length; i++) t[i].classList.remove('sel');
+  st.selected = null;
+}
+$('bank').addEventListener('pointerdown', function(e){
+  var t = e.target.closest ? e.target.closest('.tile') : null;
+  if (!t) return;
+  e.preventDefault();
+  drag = {el:t, x0:e.clientX, y0:e.clientY, moved:false, ghost:null, hover:null, id:e.pointerId};
+  try{ t.setPointerCapture(e.pointerId); }catch(err){}
+});
+window.addEventListener('pointermove', function(e){
+  if (!drag || e.pointerId !== drag.id) return;
+  var dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+  if (!drag.moved && Math.sqrt(dx * dx + dy * dy) > 8){
+    drag.moved = true; drag.ghost = drag.el.cloneNode(true); drag.ghost.classList.add('ghost'); drag.ghost.classList.remove('sel');
+    document.body.appendChild(drag.ghost); drag.el.classList.add('lift');
+  }
+  if (drag.moved){
+    var gx = e.clientX, gy = e.clientY - 56;
+    drag.ghost.style.left = gx + 'px'; drag.ghost.style.top = gy + 'px';
+    setHover(nearestSlot(gx, gy)); e.preventDefault();
+  }
+});
+function endDrag(e, cancel){
+  if (!drag || e.pointerId !== drag.id) return;
+  var d = drag; drag = null;
+  d.el.classList.remove('lift');
+  if (d.ghost) d.ghost.parentNode.removeChild(d.ghost);
+  var text = d.el.getAttribute('data-text'), kind = d.el.getAttribute('data-kind');
+  if (d.hover) d.hover.el.classList.remove('hover');
+  if (cancel) return;
+  if (d.moved){
+    if (d.hover) place(d.hover, text, kind);
+  } else {
+    var was = d.el.classList.contains('sel'); clearSel();
+    if (!was){ d.el.classList.add('sel'); st.selected = {text:text, kind:kind}; say('Выбрано «' + text + '». Теперь нажми на ячейку, куда её положить.', 'info'); }
+  }
+}
+window.addEventListener('pointerup', function(e){ endDrag(e, false); });
+window.addEventListener('pointercancel', function(e){ endDrag(e, true); });
+
+$('nb').addEventListener('click', function(e){
+  var s = e.target.closest ? e.target.closest('.slot') : null;
+  if (!s || !s._slot) return;
+  if (st.selected && !s._slot.filled && !cur.done){
+    var sel = st.selected; clearSel(); place(s._slot, sel.text, sel.kind);
+  } else if (!s._slot.filled && !st.selected){
+    say('Сначала нажми на плитку внизу (или перетащи её сюда пальцем).', 'info');
+  }
+});
+$('hintBtn').addEventListener('click', onHint);
+$('nextBtn').addEventListener('click', function(){ if (cur && cur.done && st.stage < STAGE_INFO.length - 1) goStage(st.stage + 1); });
+window.addEventListener('resize', fitPadding);
+
+$('condText').innerHTML = TASK.textHTML;
+resetState(); goStage(0);
+window.__konstruktor = {place:place, get cur(){ return cur; }, get st(){ return st; }, TASK:TASK};
+})();
+</script>
+</body>
+</html>
