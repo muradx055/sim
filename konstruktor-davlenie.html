@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20style=%22color:%23185FA5%22%20viewBox=%22-80%20-68%20160%20136%22%3E%3Cg%20fill=%22none%22%20stroke=%22currentColor%22%20stroke-width=%222.6%22%3E%3Cellipse%20rx=%2272%22%20ry=%2225%22/%3E%3Cellipse%20rx=%2272%22%20ry=%2225%22%20transform=%22rotate(60)%22/%3E%3Cellipse%20rx=%2272%22%20ry=%2225%22%20transform=%22rotate(120)%22/%3E%3C/g%3E%3Cg%20fill=%22currentColor%22%3E%3Ccircle%20cx=%2272%22%20r=%226%22/%3E%3Ccircle%20cx=%2272%22%20r=%226%22%20transform=%22rotate(60)%22/%3E%3Ccircle%20cx=%2272%22%20r=%226%22%20transform=%22rotate(120)%22/%3E%3Ccircle%20r=%2231%22/%3E%3C/g%3E%3Ctext%20y=%229%22%20text-anchor=%22middle%22%20font-size=%2225%22%20font-weight=%22600%22%20fill=%22%23fff%22%20font-family=%22Segoe%20UI,Roboto,Arial,sans-serif%22%3E%D0%9C%D0%A5%3C/text%3E%3C/svg%3E">
 <title>Конструктор задач. Давление газа</title>
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -11,6 +12,10 @@
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;display:flex;justify-content:center}
   .wrap{width:100%;max-width:620px;padding:16px 14px 40px}
   a.back,button.back{color:#8fb0ff;text-decoration:none;font-size:15px;background:none;border:none;padding:4px 0;cursor:pointer;font-family:inherit}
+  .lg{color:#6ea8ff;height:40px;width:auto;flex:none}
+  .ttl{display:flex;align-items:center;gap:10px;margin:8px 2px 4px}
+  .ttl h1{margin:0}
+  .auth{margin:18px 2px 0;font-size:13px;color:#7886b8}
   h1{font-size:22px;margin:8px 2px 4px}
   .how{margin:0 2px 12px;color:#9aa8d4;font-size:14px;line-height:1.45}
   /* меню */
@@ -102,7 +107,7 @@
 <div class="wrap" id="wrap">
 
   <div id="menu">
-    <h1>Конструктор задач. Давление газа</h1>
+    <div class="ttl"><svg class="lg" viewBox="-80 -68 160 136" role="img" aria-label="Логотип автора: атом МХ"><g fill="none" stroke="currentColor" stroke-width="2.6"><ellipse rx="72" ry="25"/><ellipse rx="72" ry="25" transform="rotate(60)"/><ellipse rx="72" ry="25" transform="rotate(120)"/></g><g fill="currentColor"><circle cx="72" r="6"/><circle cx="72" r="6" transform="rotate(60)"/><circle cx="72" r="6" transform="rotate(120)"/><circle r="31"/></g><text y="9" text-anchor="middle" font-size="25" font-weight="600" fill="#fff" font-family="Segoe UI,Roboto,Arial,sans-serif">МХ</text></svg><h1>Конструктор задач. Давление газа</h1></div>
     <p class="how">Пара 10 · Давление газа. Десять задач от простой к сложной. Решение собирается из плиток: Дано, СИ, формула, подстановка, расчёт.</p>
     <details class="memo"><summary>📘 Памятка из лекции</summary><div class="mb">
       <p>p = F / S — давление равно силе, делённой на площадь.</p>
@@ -112,6 +117,7 @@
       <p>Атмосферное давление ≈ 101 кПа = 760 мм рт. ст.</p>
     </div></details>
     <div id="list"></div>
+    <div class="auth">Авторская разработка Мурада Магомедова</div>
   </div>
 
   <div id="task" hidden>
