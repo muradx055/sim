@@ -53,6 +53,8 @@
   .slot.k-letter{border-color:#4f7bff}
   .slot.k-value{border-color:#c9972b}
   .slot.k-unit{border-color:#9a66e0}
+  .slot.k-word{border-color:#2f9a8a;min-width:120px}
+  .tile.k-word{background:#1f7a6d}
   .slot.k-op{border-color:#8794c4;min-width:48px}
   .slot.hover{background:#2a2410;border-color:#ffd166;transform:scale(1.06)}
   .slot.ok{border-style:solid;border-color:#2e8f55;background:#12351f;color:#c9f5d9}
@@ -108,7 +110,7 @@
 
   <div id="menu">
     <div class="ttl"><svg class="lg" viewBox="-80 -68 160 136" role="img" aria-label="Логотип автора: атом МХ"><g fill="none" stroke="currentColor" stroke-width="2.6"><ellipse rx="72" ry="25"/><ellipse rx="72" ry="25" transform="rotate(60)"/><ellipse rx="72" ry="25" transform="rotate(120)"/></g><g fill="currentColor"><circle cx="72" r="6"/><circle cx="72" r="6" transform="rotate(60)"/><circle cx="72" r="6" transform="rotate(120)"/><circle r="31"/></g><text y="9" text-anchor="middle" font-size="25" font-weight="600" fill="#fff" font-family="Segoe UI,Roboto,Arial,sans-serif">МХ</text></svg><h1>Конструктор задач. Давление газа</h1></div>
-    <p class="how">Пара 10 · Давление газа. Десять задач от простой к сложной. Решение собирается из плиток: Дано, СИ, формула, подстановка, расчёт.</p>
+    <p class="how">Пара 10 · Давление газа. Одиннадцать задач от простой к сложной. Решение собирается из плиток: Дано, СИ, формула, подстановка, расчёт.</p>
     <details class="memo"><summary>📘 Памятка из лекции</summary><div class="mb">
       <p>p = F / S — давление равно силе, делённой на площадь.</p>
       <p>p — давление (Па), F — сила (Н), S — площадь (м²).</p>
@@ -144,19 +146,21 @@
 
 /* ======================= справочники ======================= */
 var LET = {p:'давление', F:'сила', S:'площадь', m:'масса', g:'ускорение свободного падения', n:'число раз',
-           'p₁':'давление в баллоне', 'p₂':'атмосферное давление', v:'скорость', t:'время', 'ρ':'плотность', a:'ускорение'};
+           'p₁':'давление в баллоне', 'p₂':'атмосферное давление', 'p₀':'предельное давление полки', 'π':'число π', r:'радиус', v:'скорость', t:'время', 'ρ':'плотность', a:'ускорение'};
 var EXTRA_LETTERS = ['m','v','t','ρ','a'];
 var EXTRA_UNITS = ['кг','с','м/с','Дж'];
 var BASE_UNITS = ['Па','Н','м²','кг'];
 
 /* перевод в СИ: f — множитель, rule — правило */
 var CONV = {
+  'см':{f:1e-2, to:'м', rule:'1 см = 0,01 м', hint:'В СИ длину измеряют в метрах (м).'},
   'см²':{f:1e-4, to:'м²', rule:'1 см² = 0,0001 м²', hint:'В СИ площадь измеряют в квадратных метрах (м²).'},
   'кПа':{f:1e3, to:'Па', rule:'1 кПа = 1000 Па', hint:'В СИ давление измеряют в паскалях (Па).'},
   'МПа':{f:1e6, to:'Па', rule:'1 МПа = 1 000 000 Па', hint:'В СИ давление измеряют в паскалях (Па).'},
   'мм рт. ст.':{f:133, to:'Па', rule:'1 мм рт. ст. ≈ 133 Па', hint:'В СИ давление измеряют в паскалях (Па).'}
 };
 var UH = {
+  'м':'Длину и радиус измеряют в метрах (м).', 'м/с²':'Ускорение измеряют в метрах на секунду в квадрате (м/с²).',
   'Па':'Давление измеряют в паскалях: 1 Па = 1 Н на 1 м².',
   'Н':'Силу измеряют в ньютонах (Н).',
   'м²':'Площадь измеряют в квадратных метрах (м²).',
@@ -194,6 +198,15 @@ var FM = {
     op:{'·':'Умножать не нужно. Из F = m · g масса получается делением силы на g.',
         '+':'Складывать силу и g нельзя: это разные величины.', '−':'Вычитать силу и g нельзя: это разные величины.'}}
 };
+
+FM.Fmg = {why:'Сила тяжести груза F = m · g. Именно с такой силой горшок давит на полку.',
+  hints:['Горшок давит на полку своим весом. Вспомни формулу силы тяжести.', 'F = m · g: массу умножают на ускорение свободного падения.'],
+  swap:'Масса и g умножаются, порядок не важен.',
+  op:{'/':'Делить не нужно: сила тяжести равна произведению m · g.', '+':'Складывать массу и g нельзя: это разные величины.', '−':'Вычитать массу и g нельзя: это разные величины.'}};
+FM.Spr = {why:'Площадь круга S = π · r². Радиус берём в метрах, поэтому и в формуле он в СИ.',
+  hints:['Основание горшка — круг. Вспомни формулу площади круга.', 'S = π · r²: число π умножают на квадрат радиуса.'],
+  swap:'Сначала число π, потом радиус в квадрате: S = π · r².',
+  op:{'/':'Делить не нужно: площадь круга S = π · r².', '+':'Складывать π и радиус нельзя.', '−':'Вычитать π и радиус нельзя.'}};
 
 /* ======================= задачи (по лекции, пара 10) ======================= */
 var TASKS = [
@@ -269,14 +282,26 @@ var TASKS = [
   givens:[{l:'p',name:'давление',v:120,u:'мм рт. ст.'}, {l:'F',name:'сила',v:4,u:'Н'}],
   find:{l:'S',name:'площадь',u:'см²'},
   steps:[{lhs:'S',name:'площадь',a:'F',op:'/',b:'p',kind:'SFp',u:'м²',sig:2}],
-  back:{u:'см²', f:1e4, rule:'1 см² = 0,0001 м². Значит, чтобы перейти из м² в см², число умножают на 10 000.'}}
+  back:{u:'см²', f:1e4, rule:'1 см² = 0,0001 м². Значит, чтобы перейти из м² в см², число умножают на 10 000.'}},
+
+ {tag:'Выдержит ли полка?',
+  html:'Стеклянная полка выдерживает давление <b class="hl">1200 Па</b>. Лена хочет поставить на полку цветочный горшок массой <b class="hl">5 кг</b>. Основание горшка — круг радиусом <b class="hl">10 см</b>. Ускорение свободного падения принять равным <b class="hl">10 м/с²</b>. <b class="hq">Какое давление оказывает горшок на полку? Сможет ли полка его выдержать?</b> Ответ округли до целых.',
+  q:'Какое давление оказывает горшок на полку?',
+  givens:[{l:'p₀',name:'предельное давление полки',v:1200,u:'Па'}, {l:'m',name:'масса',v:5,u:'кг'}, {l:'r',name:'радиус',v:10,u:'см'}, {l:'g',name:'ускорение свободного падения',v:10,u:'м/с²'}],
+  consts:[{l:'π',name:'число π',v:3.14}],
+  find:{l:'p',name:'давление',u:'Па'},
+  steps:[{lhs:'F',name:'сила тяжести',a:'m',op:'·',b:'g',kind:'Fmg',u:'Н',sig:3},
+         {lhs:'S',name:'площадь основания',a:'π',op:'·',b:'r',pow:2,kind:'Spr',u:'м²',sig:3},
+         {lhs:'p',name:'давление',a:'F',op:'/',b:'S',kind:'pFS',u:'Па',dec:0}],
+  compare:{b:'p₀'},
+  note:'Давление горшка 1592 Па больше, чем выдерживает полка (1200 Па). Значит, полка не выдержит: нужна подставка с большей площадью опоры.'}
 ];
 
 /* ======================= утилиты ======================= */
 var $ = function(id){ return document.getElementById(id); };
 function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 function shuffle(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-function uniq(a){ var o = [], seen = {}; a.forEach(function(x){ if (x != null && !seen[x]){ seen[x] = 1; o.push(x); } }); return o; }
+function uniq(a){ var o = [], seen = {}; a.forEach(function(x){ if (x != null && x !== '' && !seen[x]){ seen[x] = 1; o.push(x); } }); return o; }
 function sig(x, n){ return parseFloat(Number(x).toPrecision(n)); }
 function clean(x){ return parseFloat(Number(x).toPrecision(12)); }
 function fmt(x){
@@ -289,11 +314,12 @@ function fmt(x){
 function parseNum(t){ return Number(String(t).replace(/[\s ]/g, '').replace(',', '.')); }
 function opv(x, op, y){ return op === '/' ? x / y : x * y; }
 function opSign(op){ return op === '/' ? '÷' : '·'; }
-var ACC = {letter:'букву', value:'число', unit:'единицу измерения', op:'знак действия'};
+var ACC = {word:'слово', letter:'букву', value:'число', unit:'единицу измерения', op:'знак действия'};
 
 /* подготовка данных задачи: тексты, СИ, результаты шагов */
 function prepare(T){
   T.Q = {}; T.names = {};
+  (T.consts || []).forEach(function(c){ T.Q[c.l] = {name:c.name, kind:'const', raw:null, si:{v:c.v, u:'', text:fmt(c.v)}, conv:false}; T.names[c.l] = c.name; });
   T.givens.forEach(function(g){
     g.text = fmt(g.v);
     var c = CONV[g.u];
@@ -306,10 +332,10 @@ function prepare(T){
   T.names[T.find.l] = T.find.name;
   T.steps.forEach(function(s, k){
     var A = T.Q[s.a], B = T.Q[s.b];
-    s.exact = opv(A.si.v, s.op, B.si.v);
+    s.exact = opv(A.si.v, s.op, Math.pow(B.si.v, s.pow || 1));
     s.rawA = A.raw ? A.raw.v : A.si.v; s.rawB = B.raw ? B.raw.v : B.si.v;
-    s.rawExact = opv(s.rawA, s.op, s.rawB);
-    s.v = sig(s.exact, s.sig); s.text = fmt(s.v);
+    s.rawExact = opv(s.rawA, s.op, Math.pow(s.rawB, s.pow || 1));
+    s.v = s.dec != null ? Number(s.exact.toFixed(s.dec)) : sig(s.exact, s.sig); s.text = fmt(s.v);
     T.Q[s.lhs] = {name:s.name, kind:'step', raw:null, si:{v:s.v, u:s.u, text:s.text}, conv:false};
     T.names[s.lhs] = s.name;
     s.last = (k === T.steps.length - 1); s.swapped = false;
@@ -538,7 +564,7 @@ function stageFormula(k){
     build:function(box){
       var row = el('div', 'row'), sl = [];
       var spec = [['letter', 0], ['letter', 1], ['op', 2], ['letter', 3]];
-      var exp = [s.lhs, s.a, s.op, s.b], comm = s.op === '\u00b7';
+      var exp = [s.lhs, s.a, s.op, s.b], comm = s.op === '·' && !s.pow;
       spec.forEach(function(p, i){
         var kind = p[0];
         sl.push(mkSlot(kind, function(t){
@@ -561,14 +587,15 @@ function stageFormula(k){
         }));
       });
       if (comm) cur.extra = function(){ s.swapped = sl[1].el.textContent === s.b; return true; };
-      row.appendChild(sl[0].el); row.appendChild(el('span', 'st', '=')); row.appendChild(sl[1].el); row.appendChild(sl[2].el); row.appendChild(sl[3].el);
+      row.appendChild(sl[0].el); row.appendChild(el('span', 'st', '=')); row.appendChild(sl[1].el); row.appendChild(sl[2].el); row.appendChild(sl[3].el); if (s.pow) row.appendChild(el('span', 'st', '²'));
       box.appendChild(row);
     }
   };
 }
 
-function qSlots(q, where, onlyValueAndUnit){
-  /* две ячейки (число, единица) для величины q в подстановке */
+function qs(q){ return q.si.text + (q.si.u ? ' ' + q.si.u : ''); }
+function qSlots(q, where){
+  /* ячейки (число, единица) для величины q в подстановке; у безразмерной константы единицы нет */
   var oth = []; Object.keys(T.Q).forEach(function(l){ if (T.Q[l] !== q) oth.push(T.Q[l]); });
   var sv = mkSlot('value', function(t){
     if (t === q.si.text) return {ok:true, msg:'Верно.'};
@@ -577,7 +604,8 @@ function qSlots(q, where, onlyValueAndUnit){
     if (o) return {ok:false, msg:'Это значение величины «' + o.name + '». Здесь нужна величина «' + q.name + '»: в формуле она стоит ' + where + '.'};
     return {ok:false, msg:'Такого числа здесь быть не должно. Возьми значения из шага «СИ» или из предыдущего расчёта.'};
   }, function(){ return q.si.text; });
-  var su = mkSlot('unit', function(t){
+  var su = null;
+  if (q.si.u) su = mkSlot('unit', function(t){
     if (t === q.si.u) return {ok:true, msg:'Верно.'};
     if (q.conv && t === q.raw.u) return {ok:false, msg:'Единица тоже должна быть в СИ: ' + q.si.u + '.'};
     var o = null; oth.forEach(function(x){ if (x.si.u === t) o = x; });
@@ -586,20 +614,24 @@ function qSlots(q, where, onlyValueAndUnit){
   }, function(){ return q.si.u; });
   return [sv, su];
 }
+function put(parent, pair){ parent.appendChild(pair[0].el); if (pair[1]) parent.appendChild(pair[1].el); }
+function exprText(s, A, B){ return A.si.text + ' ' + opSign(s.op) + ' ' + B.si.text + (s.pow ? '²' : ''); }
 
 function stageSubst(k){
   var s = T.steps[k], o = operands(s), A = o.A, B = o.B, multi = T.steps.length > 1;
   var values = uniq([A.si.text, B.si.text, A.conv ? A.raw.text : null, B.conv ? B.raw.text : null]);
   var known = T.givens.map(function(g){ return g.l; }).concat(T.steps.slice(0, k).map(function(x){ return x.lhs; }));
   known.forEach(function(l){ if (l !== o.aL && l !== o.bL && values.length < 6) values.push(T.Q[l].si.text); });
+  values = uniq(values);
   var units = uniq([A.si.u, B.si.u, A.conv ? A.raw.u : null, B.conv ? B.raw.u : null]);
   shuffle(BASE_UNITS.filter(function(u){ return units.indexOf(u) < 0; })).slice(0, 1).forEach(function(u){ units.push(u); });
+  var bTxt = s.pow ? '(' + qs(B) + ')²' : qs(B);
   return {
     lbl:multi ? 'Решение ' + (k + 1) + ':' : 'Решение:', title:multi ? 'Подстановка ' + (k + 1) : 'Подстановка',
-    instr:'Подставь в формулу числа в СИ вместе с единицами. ' + (s.op === '/' ? 'Сверху ' + nm(T, o.aL) + ', снизу ' + nm(T, o.bL) + '.' : 'Подставляй в том порядке, как записана твоя формула: сначала ' + nm(T, o.aL) + ', потом ' + nm(T, o.bL) + '.'),
+    instr:'Подставь в формулу числа в СИ вместе с единицами. ' + (s.op === '/' ? 'Сверху ' + nm(T, o.aL) + ', снизу ' + nm(T, o.bL) + '.' : 'Подставляй в том порядке, как записана твоя формула: сначала ' + nm(T, o.aL) + ', потом ' + nm(T, o.bL) + (s.pow ? ' (в квадрате)' : '') + '.'),
     hints:['Бери значения в СИ: из шага «СИ» или из предыдущего расчёта, а не из условия.',
-           'Нужно подставить: ' + o.aL + ' = ' + A.si.text + ' ' + A.si.u + ', ' + o.bL + ' = ' + B.si.text + ' ' + B.si.u + '.'],
-    done:'Подставили значения в СИ: ' + s.lhs + ' = ' + A.si.text + ' ' + A.si.u + ' ' + opSign(s.op) + ' ' + B.si.text + ' ' + B.si.u + '.',
+           'Нужно подставить: ' + o.aL + ' = ' + qs(A) + ', ' + o.bL + ' = ' + qs(B) + '.'],
+    done:'Подставили значения в СИ: ' + s.lhs + ' = ' + qs(A) + ' ' + opSign(s.op) + ' ' + bTxt + '.',
     pool:{value:values, unit:units},
     build:function(box){
       var row = el('div', 'row');
@@ -607,10 +639,13 @@ function stageSubst(k){
       var a = qSlots(A, whereWord(s.op, true)), b = qSlots(B, whereWord(s.op, false));
       if (s.op === '/'){
         var frac = el('span', 'frac'), r1 = el('span', 'fr'), r2 = el('span', 'fr');
-        r1.appendChild(a[0].el); r1.appendChild(a[1].el); r2.appendChild(b[0].el); r2.appendChild(b[1].el);
+        put(r1, a); put(r2, b);
         frac.appendChild(r1); frac.appendChild(el('span', 'fbar')); frac.appendChild(r2); row.appendChild(frac);
       } else {
-        row.appendChild(a[0].el); row.appendChild(a[1].el); row.appendChild(el('span', 'st', '·')); row.appendChild(b[0].el); row.appendChild(b[1].el);
+        put(row, a); row.appendChild(el('span', 'st', '·'));
+        if (s.pow) row.appendChild(el('span', 'st', '('));
+        put(row, b);
+        if (s.pow) row.appendChild(el('span', 'st', ')²'));
       }
       box.appendChild(row);
     }
@@ -619,13 +654,14 @@ function stageSubst(k){
 
 function stageCalc(k){
   var s = T.steps[k], o = operands(s), A = o.A, B = o.B, multi = T.steps.length > 1;
-  var expr = A.si.text + ' ' + opSign(s.op) + ' ' + B.si.text;
+  var expr = exprText(s, A, B);
   var tol = s.tol || 0.01;
+  var rnd = s.dec === 0 ? 'Ответ округли до целых.' : 'Ответ округли до трёх цифр.';
   var units = uniq([s.u].concat(shuffle(BASE_UNITS.concat(['раз']).filter(function(u){ return u !== s.u; })).slice(0, 3)));
   return {
     lbl:multi ? 'Расчёт ' + (k + 1) + ':' : 'Ответ:', title:multi ? 'Расчёт ' + (k + 1) : 'Расчёт',
-    instr:'Посчитай на калькуляторе ' + expr + ' и впиши число. Потом выбери единицу измерения.',
-    hints:['Посчитай на калькуляторе: ' + expr + '. Ответ округли до трёх цифр.', 'Должно получиться около ' + s.text + '. ' + (UH[s.u] || '')],
+    instr:'Посчитай на калькуляторе ' + expr + (s.pow ? ' (число с «²» возведи в квадрат)' : '') + ' и впиши число. ' + (s.dec === 0 ? 'Округли до целых. ' : '') + 'Потом выбери единицу измерения.',
+    hints:['Посчитай на калькуляторе: ' + expr + '. ' + rnd, 'Должно получиться около ' + s.text + '. ' + (UH[s.u] || '')],
     done:'Получили: ' + s.lhs + ' ≈ ' + s.text + ' ' + s.u + '.',
     pool:{unit:units},
     note:'Число впиши в поле, единицу перетащи в ячейку',
@@ -634,10 +670,10 @@ function stageCalc(k){
       row.appendChild(el('span', 'st', s.lhs + ' ='));
       if (s.op === '/'){
         var frac = el('span', 'frac'), r1 = el('span', 'fr'), r2 = el('span', 'fr');
-        r1.appendChild(el('span', 'st', A.si.text + ' ' + A.si.u)); r2.appendChild(el('span', 'st', B.si.text + ' ' + B.si.u));
+        r1.appendChild(el('span', 'st', qs(A))); r2.appendChild(el('span', 'st', qs(B)));
         frac.appendChild(r1); frac.appendChild(el('span', 'fbar')); frac.appendChild(r2); row.appendChild(frac);
       } else {
-        row.appendChild(el('span', 'st', A.si.text + ' ' + A.si.u + ' · ' + B.si.text + ' ' + B.si.u));
+        row.appendChild(el('span', 'st', qs(A) + ' · ' + (s.pow ? '(' + qs(B) + ')²' : qs(B))));
       }
       row.appendChild(el('span', 'st', '≈'));
       var inp = el('input', 'num-in'); inp.setAttribute('inputmode', 'decimal'); inp.setAttribute('autocomplete', 'off'); inp.setAttribute('placeholder', '?');
@@ -651,19 +687,22 @@ function stageCalc(k){
         if (cur.numOk || cur.done) return;
         var x = parseNum(inp.value);
         if (inp.value.replace(/\s/g, '') === '' || !isFinite(x)){ say('Впиши число. Можно с запятой, например 3,19.', 'info'); return; }
-        if (Math.abs(x - s.exact) <= tol * Math.abs(s.exact)){
+        var good = s.dec != null ? Math.abs(x - s.v) < 1e-9 : Math.abs(x - s.exact) <= tol * Math.abs(s.exact);
+        if (good){
           cur.numOk = true; inp.value = s.text; inp.classList.add('ok'); inp.disabled = true; btn.disabled = true;
           say('Верно: ' + expr + ' ≈ ' + s.text + '.', 'ok'); checkStageDone();
         } else {
           st.errors++; cur.wrongNum++; flashBad(inp);
           var m, near = function(v){ return isFinite(v) && Math.abs(x - v) <= 0.02 * Math.abs(v); };
-          if (T.steps[k].op === '/' && near(opv(B.si.v, '/', A.si.v))) m = 'Ты разделил(а) наоборот. Проверь, что делим на что: ' + expr + '.';
+          if (s.dec != null && Math.abs(x - s.exact) <= 0.01 * Math.abs(s.exact)) m = 'Значение близкое, но ответ нужно округлить до целых по правилам округления. Посмотри на первую цифру после запятой.';
+          else if (s.op === '/' && near(B.si.v / A.si.v)) m = 'Ты разделил(а) наоборот. Проверь, что делим на что: ' + expr + '.';
           else if (s.op === '/' && near(A.si.v * B.si.v)) m = 'Ты умножил(а), а нужно делить: ' + expr + '.';
           else if (s.op !== '/' && near(A.si.v / B.si.v)) m = 'Ты разделил(а), а нужно умножать: ' + expr + '.';
+          else if (s.pow && near(A.si.v * B.si.v)) m = 'Радиус нужно возвести в квадрат: ' + B.si.text + '² = ' + fmt(clean(B.si.v * B.si.v)) + '. Потом умножь на ' + A.si.text + '.';
           else if ((A.conv || B.conv) && near(s.rawExact)) m = 'Похоже, ты считал(а) с числами из условия, не переводя единицы в СИ. Считай по значениям из шага «СИ»: ' + expr + '.';
           else {
             var pm = pow10Msg(inp.value, s.exact);
-            m = pm ? 'Не совпало: ' + pm + '. Проверь запятую и степень числа 10.' : 'Не совпало. Проверь вычисление на калькуляторе: ' + expr + '. Ответ округли до трёх цифр.';
+            m = pm ? 'Не совпало: ' + pm + '. Проверь запятую и степень числа 10.' : 'Не совпало. Проверь вычисление на калькуляторе: ' + expr + '. ' + rnd;
           }
           if (cur.wrongNum >= 3 && st.hintLvl === 0) m += ' Можно взять подсказку.';
           say(m, 'bad');
@@ -674,6 +713,36 @@ function stageCalc(k){
       row.appendChild(inp); row.appendChild(us.el); row.appendChild(btn);
       box.appendChild(row);
       cur.submit = function(v){ inp.value = v; submit(); };
+    }
+  };
+}
+
+function stageCompare(){
+  var ls = T.steps[T.steps.length - 1], lim = T.Q[T.compare.b], pv = ls.text, u = ls.u;
+  var bigger = ls.v > lim.si.v, expOp = bigger ? '>' : '<', expWord = bigger ? 'не выдержит' : 'выдержит';
+  return {
+    lbl:'Вывод:', title:'Вывод',
+    instr:'Сравни давление горшка с тем, что выдерживает полка, и ответь на вопрос задачи.',
+    hints:['Сравни два числа: ' + pv + ' и ' + lim.si.text + '. Какое больше?', 'Давление горшка ' + pv + ' ' + u + (bigger ? ' больше' : ' меньше') + ', чем выдерживает полка (' + lim.si.text + ' ' + u + ').'],
+    done:'', pool:{op:['>', '<', '='], word:['выдержит', 'не выдержит']},
+    build:function(box){
+      var r1 = el('div', 'row');
+      r1.appendChild(el('span', 'st', pv + ' ' + u));
+      r1.appendChild(mkSlot('op', function(t){
+        if (t === expOp) return {ok:true, msg:'Верно: ' + pv + (bigger ? ' больше, чем ' : ' меньше, чем ') + lim.si.text + '.'};
+        if (t === '=') return {ok:false, msg:'Числа ' + pv + ' и ' + lim.si.text + ' не равны.'};
+        return {ok:false, msg:'Наоборот: ' + pv + (bigger ? ' больше, чем ' : ' меньше, чем ') + lim.si.text + '. Знак «открыт» в сторону большего числа.'};
+      }, function(){ return expOp; }).el);
+      r1.appendChild(el('span', 'st', lim.si.text + ' ' + lim.si.u));
+      box.appendChild(r1);
+      var r2 = el('div', 'row');
+      r2.appendChild(el('span', 'st', 'Полка'));
+      r2.appendChild(mkSlot('word', function(t){
+        if (t === expWord) return {ok:true, msg:'Верно: давление горшка ' + (bigger ? 'больше' : 'меньше') + ' допустимого, значит полка ' + expWord + ' такой горшок.'};
+        return {ok:false, msg: bigger ? 'Давление горшка больше допустимого. Полка выдерживает только давление не больше ' + lim.si.text + ' ' + lim.si.u + '.' : 'Давление горшка меньше допустимого, значит полка выдержит.'};
+      }, function(){ return expWord; }).el);
+      r2.appendChild(el('span', 'st', 'такой горшок.'));
+      box.appendChild(r2);
     }
   };
 }
@@ -712,6 +781,7 @@ function buildStages(){
   T.steps.forEach(function(s, k){
     M.push(function(){ return stageFormula(k); }); M.push(function(){ return stageSubst(k); }); M.push(function(){ return stageCalc(k); });
   });
+  if (T.compare) M.push(stageCompare);
   if (T.back) M.push(stageBack);
   makers = M; return new Array(M.length);
 }
@@ -721,7 +791,7 @@ function stg(n){ if (!stages[n]) stages[n] = makers[n](); return stages[n]; }
 function renderBank(){
   var p = stg(st.stage).pool, bank = $('bank'); bank.innerHTML = '';
   if (stg(st.stage).note) bank.appendChild(el('div', 'note', stg(st.stage).note));
-  ['letter', 'value', 'unit', 'op'].forEach(function(kind){
+  ['letter', 'value', 'unit', 'op', 'word'].forEach(function(kind){
     if (!p[kind] || !p[kind].length) return;
     var g = el('div', 'grp');
     shuffle(p[kind]).forEach(function(t){
