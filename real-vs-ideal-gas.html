@@ -38,19 +38,6 @@
   .sw input{width:22px;height:22px;accent-color:var(--real)}
   .legend{display:flex;gap:14px;flex-wrap:wrap;margin:8px 4px 0;font-size:12.5px;color:var(--muted)}
   .legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:-1px}
-  .stage{position:relative}
-  #vctl{position:absolute;top:0;display:flex;justify-content:space-around;pointer-events:none}
-  .vc{flex:1;display:flex;flex-direction:column;align-items:center;pointer-events:auto}
-  .vc .top{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:6px;text-align:center}
-  .vc .lab{font-size:10px;color:var(--muted);white-space:nowrap}
-  .vc b{font-size:12px;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums}
-  .vbox{position:relative;width:100%}
-  input.vr{position:absolute;left:50%;top:50%;height:34px;margin:0;transform:translate(-50%,-50%) rotate(-90deg);touch-action:none}
-  input.vr{height:24px}
-  input.vr::-webkit-slider-runnable-track{height:5px}
-  input.vr::-moz-range-track{height:5px}
-  input.vr::-webkit-slider-thumb{width:20px;height:20px;margin-top:-7.5px;border-width:3px}
-  input.vr::-moz-range-thumb{width:14px;height:14px;border-width:3px}
   .hint{margin:10px 4px 0;font-size:12.5px;color:var(--muted);line-height:1.4}
 </style>
 </head>
@@ -58,16 +45,15 @@
 <div class="wrap">
   <h1>Идеальный и реальный газ</h1>
 
-  <div class="stage">
-    <canvas id="scene"></canvas>
-    <div id="vctl">
-      <div class="vc"><div class="top"><span class="lab">Темп.</span><b id="vT"></b></div>
-        <div class="vbox"><input class="vr" type="range" id="sT" min="100" max="600" step="5" value="300" aria-label="Температура"></div></div>
-      <div class="vc"><div class="top"><span class="lab">Объём</span><b id="vV"></b></div>
-        <div class="vbox"><input class="vr" type="range" id="sV" min="8" max="24" step="0.25" value="16" aria-label="Объём"></div></div>
-      <div class="vc"><div class="top"><span class="lab">Число</span><b id="vN"></b></div>
-        <div class="vbox"><input class="vr" type="range" id="sN" min="10" max="100" step="1" value="50" aria-label="Число молекул"></div></div>
-    </div>
+  <canvas id="scene"></canvas>
+
+  <div class="panel" style="margin-top:8px">
+    <div class="ctl"><label>Температура <b id="vT"></b></label>
+      <input type="range" id="sT" min="100" max="600" step="5" value="300"></div>
+    <div class="ctl"><label>Объём (поршень) <b id="vV"></b></label>
+      <input type="range" id="sV" min="8" max="24" step="0.25" value="16"></div>
+    <div class="ctl"><label>Число молекул в каждой камере <b id="vN"></b></label>
+      <input type="range" id="sN" min="10" max="100" step="1" value="50"></div>
   </div>
 
   <div id="msg"></div>
@@ -256,14 +242,10 @@ var pmax=800, hist=[];
 function layout(){
   dpr=Math.min(window.devicePixelRatio||1,3);
   cssW=scene.parentNode.clientWidth;
-  var sw=cssW<520?34:36, gap=3*sw+14, colW=(cssW-gap)/2, padX=6, cw=colW-2*padX, s=cw/(W+1);
+  var gap=10, colW=(cssW-gap)/2, padX=6, cw=colW-2*padX, s=cw/(W+1);
   var r=0;
   var titleH=46, readH=54, chTop=titleH+readH, chH=(LMAX+1)*s, H=chTop+chH+10;
   L1={gap:gap,colW:colW,padX:padX,cw:cw,s:s,r:r,titleH:titleH,readH:readH,chTop:chTop,chH:chH,H:H};
-  var vc=document.getElementById('vctl'); vc.style.left=colW+'px'; vc.style.width=gap+'px'; vc.style.height=H+'px';
-  [].forEach.call(document.querySelectorAll('.vc .top'),function(e){ e.style.height=chTop+'px'; });
-  [].forEach.call(document.querySelectorAll('.vbox'),function(e){ e.style.height=chH+'px'; });
-  [].forEach.call(document.querySelectorAll('input.vr'),function(e){ e.style.width=chH+'px'; });
   scene.style.height=H+'px'; scene.width=Math.round(cssW*dpr); scene.height=Math.round(H*dpr);
   var ch=150; chart.style.height=ch+'px'; chart.width=Math.round(cssW*dpr); chart.height=Math.round(ch*dpr);
 }
