@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Выразите неизвестную величину</title>
+<style>
+  :root{--bg:#0d1326;--panel:#151d3a;--panel2:#1b2548;--ink:#eaf0ff;--muted:#9aa8d4;--line:#2a3566;
+        --accent:#7c8cff;--tg:#ff9e4a;--ok:#4cd08a;--bad:#ff6b6b}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  .wrap{max-width:720px;margin:0 auto;padding:10px 10px 30px}
+  .head{display:flex;align-items:center;gap:10px;margin:4px 4px 6px}
+  .logo{height:44px;width:auto;flex:none;color:#6ea8ff}
+  h1{font-size:18px;line-height:1.2;margin:0;font-weight:700}
+  .sub{margin:0 4px 8px;color:var(--muted);font-size:13px;line-height:1.35}
+  .chips{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;padding:8px 11px;border-radius:20px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);
+        font-size:13px;font-weight:600;cursor:pointer}
+  .chip small{display:block;font-weight:400;color:var(--muted);font-size:11px}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .chip.on small{color:#e6e9ff}
+  .card{background:var(--panel);border-radius:14px;padding:12px 14px;margin-top:8px}
+  .task{font-size:15px;line-height:1.4}
+  .task .nm0{color:var(--muted);font-size:13px;display:block;margin-bottom:2px}
+  .legend{margin:8px 0 0;padding:0;list-style:none;font-size:13.5px;color:var(--muted);display:grid;gap:2px}
+  .legend b{color:var(--ink);font-weight:400}
+  .vr i{font-family:"Cambria Math","STIX Two Math","Times New Roman",serif;font-style:italic}
+  .vr.tg{color:var(--tg)}
+  .vr sub{font-size:.65em;line-height:0;vertical-align:-0.3em}
+  .eqbox{margin-top:8px;padding:16px 8px;background:var(--panel);border-radius:14px;overflow-x:auto;text-align:center;white-space:nowrap;
+         font-family:"Cambria Math","STIX Two Math","Times New Roman",serif;font-size:clamp(22px,6.4vw,30px);min-height:96px;
+         display:flex;align-items:center;justify-content:center}
+  .eqbox>div{display:inline-flex;align-items:center;gap:.35em}
+  .eq{padding:0 .2em;color:var(--muted)}
+  .nm{font-style:normal}
+  .dot{padding:0 .12em;color:var(--muted)}
+  .par{font-size:1.1em}
+  sup{font-size:.62em;line-height:0;vertical-align:.7em}
+  .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .12em}
+  .frac .fn{border-bottom:.07em solid currentColor;padding:0 .2em .1em;line-height:1.15}
+  .frac .fd{padding:.1em .2em 0;line-height:1.15}
+  .rad{display:inline-flex;align-items:stretch}
+  .rs{font-size:1.1em;line-height:1}
+  .rin{border-top:.07em solid currentColor;padding:0 .15em;margin-left:-.08em;line-height:1.15;display:inline-flex;align-items:center}
+  .ridx{font-size:.5em;align-self:flex-start;margin-right:-.15em}
+  .tap{cursor:pointer;border-radius:10px;padding:.08em .22em;outline:1.5px dashed rgba(124,140,255,.55);outline-offset:1px;display:inline-block}
+  .tap:hover{background:rgba(124,140,255,.18)}
+  .tap.sel{background:rgba(124,140,255,.35);outline-color:#fff}
+  .tap.hint{animation:pulse 1s ease-in-out infinite;background:rgba(255,200,80,.28);outline-color:#ffc850}
+  .locked .tap{pointer-events:none;outline:none}
+  @keyframes pulse{50%{background:rgba(255,200,80,.6)}}
+  .opts{margin-top:8px;display:none}
+  .opts.show{display:block}
+  .opts h3{font-size:14px;margin:0 0 6px;font-weight:600;color:var(--muted)}
+  .opts h3 span{font-family:"Cambria Math","STIX Two Math","Times New Roman",serif;color:var(--ink);font-size:17px}
+  .opt{display:block;width:100%;text-align:left;margin:0 0 6px;padding:12px 12px;font-size:14.5px;line-height:1.3;
+       color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:11px;cursor:pointer}
+  .opt:active{background:#26336a}
+  .fb{margin-top:8px;padding:10px 12px;border-radius:11px;font-size:14px;line-height:1.4;display:none}
+  .fb.show{display:block}
+  .fb.bad{background:rgba(255,107,107,.14);border-left:4px solid var(--bad)}
+  .fb.ok{background:rgba(76,208,138,.14);border-left:4px solid var(--ok)}
+  .fb.info{background:var(--panel2);border-left:4px solid var(--accent)}
+  .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .btn{flex:1 1 auto;min-width:90px;padding:11px 10px;font-size:14px;font-weight:600;color:var(--ink);background:var(--panel2);
+       border:1px solid var(--line);border-radius:11px;cursor:pointer}
+  .btn:active{background:#26336a}
+  .btn.hint{animation:pulse 1s ease-in-out infinite;border-color:#ffc850}
+  .btn:disabled{opacity:.4}
+  .hist{margin-top:8px}
+  .hist h3{font-size:13px;color:var(--muted);margin:6px 4px;font-weight:600}
+  .step{padding:8px 12px;margin-bottom:6px;background:var(--panel);border-radius:11px;font-size:13px;color:var(--muted)}
+  .step .se{display:block;margin-top:3px;color:var(--ink);font-family:"Cambria Math","STIX Two Math","Times New Roman",serif;font-size:20px;
+            overflow-x:auto;white-space:nowrap}
+  .done{display:none;text-align:center}
+  .done.show{display:block}
+  .stars{font-size:30px;letter-spacing:4px;color:#ffc850}
+  .done p{margin:4px 0 10px}
+  details{margin-top:8px;background:var(--panel);border-radius:14px;padding:10px 14px;font-size:13.5px;line-height:1.5}
+  summary{cursor:pointer;font-weight:600}
+  details ul{margin:6px 0 0;padding-left:18px;color:var(--muted)}
+  details b{color:var(--ink)}
+  .custom{display:none}
+  .custom.show{display:block}
+  .custom input,.custom select{width:100%;padding:11px 12px;font-size:16px;color:var(--ink);background:var(--panel2);border:1px solid var(--line);
+       border-radius:11px;margin-top:6px}
+  .stat{margin:10px 4px 0;font-size:12.5px;color:var(--muted)}
+  .foot{margin:14px 4px 0;font-size:12px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <svg class="logo" viewBox="-80 -68 160 136" role="img" aria-label="Логотип: атом с монограммой МХ"><g fill="none" stroke="currentColor" stroke-width="2.6"><ellipse rx="72" ry="25"/><ellipse rx="72" ry="25" transform="rotate(60)"/><ellipse rx="72" ry="25" transform="rotate(120)"/></g><g fill="currentColor"><circle cx="72" r="6"/><circle cx="72" r="6" transform="rotate(60)"/><circle cx="72" r="6" transform="rotate(120)"/><circle r="31"/></g><text y="9" text-anchor="middle" font-size="25" font-weight="600" fill="#fff" font-family="Segoe UI,Roboto,Arial,sans-serif">МХ</text></svg>
+    <h1>Выразите неизвестную величину</h1>
+  </div>
+  <p class="sub">Нажмите на то, что мешает искомой величине стоять одной, и выберите верное действие. Примеры идут от простых к сложным.</p>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="card custom" id="custom">
+    <b>Свой пример</b>
+    <input id="cF" placeholder="например: v = v0 + a*t" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <select id="cT" aria-label="Что выразить"></select>
+    <div class="row"><button class="btn" id="cGo">Начать</button></div>
+    <div class="stat">Знаки: + − * / ^2 sqrt( ), греческие буквы можно писать словами: rho, nu, lambda, pi. Индекс: v_0 или v0.</div>
+  </div>
+
+  <div class="card task" id="task"></div>
+  <div class="eqbox" id="eqbox"></div>
+  <div class="opts" id="opts"></div>
+  <div class="fb" id="fb"></div>
+
+  <div class="row" id="ctrl">
+    <button class="btn" id="bUndo">↶ Отменить шаг</button>
+    <button class="btn" id="bFlip">⇅ Перевернуть дробь</button>
+    <button class="btn" id="bHint">💡 Подсказка</button>
+  </div>
+
+  <div class="card done" id="done">
+    <div class="stars" id="stars"></div>
+    <p id="doneTxt"></p>
+    <button class="btn" id="bNext" style="width:100%">Следующий пример →</button>
+  </div>
+
+  <div class="hist" id="hist"></div>
+
+  <details>
+    <summary>Памятка: что куда переносится</summary>
+    <ul>
+      <li><b>Слагаемое</b> переносим в другую часть с противоположным знаком (+ меняется на −, − на +).</li>
+      <li><b>Множитель в числителе</b> уходит в знаменатель другой части (обе части делим на него).</li>
+      <li><b>Множитель в знаменателе</b> уходит в числитель другой части (обе части умножаем на него).</li>
+      <li><b>Степень</b> убираем корнем, <b>корень</b> убираем возведением в степень.</li>
+      <li>Если искомая величина в знаменателе дроби «1 / x», можно перевернуть обе части.</li>
+      <li>Если перед искомой величиной стоит минус, меняем знаки у обеих частей.</li>
+    </ul>
+  </details>
+
+  <div class="stat" id="stat"></div>
+  <div class="foot">Автор: Магомедов М. · преподаватель физики · г. Кизляр</div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ алгебра: дерево выражения ============ */
+var ALIAS={rho:'ρ',nu:'ν',lambda:'λ',alpha:'α',beta:'β',mu:'μ',eta:'η',tau:'τ',omega:'ω',phi:'φ',sigma:'σ',epsilon:'ε',delta:'δ',gamma:'γ'};
+function N(v){ return {t:'n',v:String(v)}; }
+function Vv(n,s){ return {t:'v',n:n,s:s||''}; }
+function add(a){ return {t:'add',a:a}; }
+function mul(n,d){ return {t:'mul',n:n,d:d||[]}; }
+function pw(b,p){ return {t:'pow',b:b,p:p}; }
+function rt(k,e){ return {t:'root',k:k,e:e}; }
+function key(x){ return JSON.stringify(x); }
+function isNum(x){ return x.t==='n'; }
+function isOne(x){ return x.t==='n' && x.v==='1'; }
+function vid(x){ return x.n+'|'+(x.s||''); }
+function has(x,id){
+  switch(x.t){
+    case 'v': return vid(x)===id;
+    case 'n': return false;
+    case 'add': return x.a.some(function(it){ return has(it.e,id); });
+    case 'mul': return x.n.some(function(f){ return has(f,id); })||x.d.some(function(f){ return has(f,id); });
+    case 'pow': return has(x.b,id);
+    case 'root': return has(x.e,id);
+  }
+  return false;
+}
+function cnt(x,id){
+  switch(x.t){
+    case 'v': return vid(x)===id?1:0;
+    case 'n': return 0;
+    case 'add': return x.a.reduce(function(s,it){ return s+cnt(it.e,id); },0);
+    case 'mul': return x.n.concat(x.d).reduce(function(s,f){ return s+cnt(f,id); },0);
+    case 'pow': return cnt(x.b,id);
+    case 'root': return cnt(x.e,id);
+  }
+  return 0;
+}
+function hasFrac(x){
+  switch(x.t){
+    case 'mul': return x.d.length>0 || x.n.some(hasFrac);
+    case 'add': return x.a.some(function(it){ return hasFrac(it.e); });
+    case 'pow': return hasFrac(x.b);
+    case 'root': return hasFrac(x.e);
+  }
+  return false;
+}
+function norm(x){
+  switch(x.t){
+    case 'n': case 'v': return x;
+    case 'add': {
+      var out=[];
+      x.a.forEach(function(it){
+        var e=norm(it.e);
+        if(e.t==='add'){ e.a.forEach(function(j){ out.push({sg:it.sg*j.sg,e:j.e}); }); }
+        else out.push({sg:it.sg,e:e});
+      });
+      if(out.length===1 && out[0].sg===1) return out[0].e;
+      if(out[0].sg<0){
+        var k=-1; for(var i=0;i<out.length;i++){ if(out[i].sg>0){ k=i; break; } }
+        if(k>0){ var tt=out.splice(k,1)[0]; out.unshift(tt); }
+      }
+      return {t:'add',a:out};
+    }
+    case 'mul': {
+      var n=[], d=[];
+      var push=function(e,inDen){
+        e=norm(e);
+        if(e.t==='mul'){
+          e.n.forEach(function(f){ (inDen?d:n).push(f); });
+          e.d.forEach(function(f){ (inDen?n:d).push(f); });
+        } else (inDen?d:n).push(e);
+      };
+      x.n.forEach(function(e){ push(e,false); });
+      x.d.forEach(function(e){ push(e,true); });
+      n=n.filter(function(f){ return !isOne(f); });
+      d=d.filter(function(f){ return !isOne(f); });
+      for(var i=0;i<n.length;i++){
+        var kk=key(n[i]);
+        for(var j=0;j<d.length;j++){ if(key(d[j])===kk){ n.splice(i,1); d.splice(j,1); i--; break; } }
+      }
+      var nums=n.filter(isNum), rest=n.filter(function(f){ return !isNum(f); });
+      n=nums.concat(rest);
+      if(n.length===0) n=[N(1)];
+      if(d.length===0 && n.length===1) return n[0];
+      return {t:'mul',n:n,d:d};
+    }
+    case 'pow': {
+      var b=norm(x.b);
+      if(x.p===1 || isOne(b)) return b;
+      if(b.t==='pow') return norm(pw(b.b,b.p*x.p));
+      return {t:'pow',b:b,p:x.p};
+    }
+    case 'root': {
+      var e2=norm(x.e);
+      if(e2.t==='pow' && e2.p===x.k) return e2.b;
+      return {t:'root',k:x.k,e:e2};
+    }
+  }
+}
+function ev(x,env){
+  switch(x.t){
+    case 'n': return x.v==='π'?Math.PI:parseFloat(x.v);
+    case 'v': return env[vid(x)];
+    case 'add': return x.a.reduce(function(s,it){ return s+it.sg*ev(it.e,env); },0);
+    case 'mul': { var r=1; x.n.forEach(function(f){ r*=ev(f,env); }); x.d.forEach(function(f){ r/=ev(f,env); }); return r; }
+    case 'pow': return Math.pow(ev(x.b,env),x.p);
+    case 'root': return Math.pow(ev(x.e,env),1/x.k);
+  }
+}
+function collect(x,acc){
+  switch(x.t){
+    case 'v': if(acc.indexOf(vid(x))<0) acc.push(vid(x)); break;
+    case 'add': x.a.forEach(function(it){ collect(it.e,acc); }); break;
+    case 'mul': x.n.forEach(function(f){ collect(f,acc); }); x.d.forEach(function(f){ collect(f,acc); }); break;
+    case 'pow': collect(x.b,acc); break;
+    case 'root': collect(x.e,acc); break;
+  }
+  return acc;
+}
+
+/* ============ разбор формулы из строки ============ */
+function tokenize(src){
+  var s=src.replace(/\s+/g,''), out=[], m;
+  var re=/^(?:(\d+(?:[.,]\d+)?)|(sqrt|cbrt|pi|rho|nu|lambda|alpha|beta|mu|eta|tau|omega|phi|sigma|epsilon|delta|gamma)(?!\p{L})|(\p{L})(?:_?([\p{L}\p{N}]+))?|([-+*\/^()=·×:]))/u;
+  while(s.length){
+    m=re.exec(s);
+    if(!m) throw new Error('Не понимаю символ «'+s.charAt(0)+'»');
+    if(m[1]) out.push({k:'num',v:m[1].replace(',','.')});
+    else if(m[2]){
+      if(m[2]==='sqrt'||m[2]==='cbrt') out.push({k:'fn',v:m[2]});
+      else if(m[2]==='pi') out.push({k:'num',v:'π'});
+      else out.push({k:'id',n:ALIAS[m[2]],s:''});
+    }
+    else if(m[3]){ if(m[3]==='π'&&!m[4]) out.push({k:'num',v:'π'}); else out.push({k:'id',n:m[3],s:m[4]||''}); }
+    else out.push({k:'op',v:m[5]});
+    s=s.slice(m[0].length);
+  }
+  return out;
+}
+function parse(str){
+  var tk=tokenize(str), p=0;
+  function isOp(v){ var t=tk[p]; return !!t && t.k==='op' && t.v===v; }
+  function expr(){
+    var terms=[], sg=1;
+    if(isOp('-')){ p++; sg=-1; } else if(isOp('+')) p++;
+    terms.push({sg:sg,e:term()});
+    while(isOp('+')||isOp('-')){ sg=tk[p].v==='-'?-1:1; p++; terms.push({sg:sg,e:term()}); }
+    return add(terms);
+  }
+  function term(){
+    var n=[power()], d=[];
+    while(isOp('*')||isOp('·')||isOp('×')||isOp('/')||isOp(':')){
+      var o=tk[p].v; p++; var f=power();
+      if(o==='/'||o===':') d.push(f); else n.push(f);
+    }
+    return mul(n,d);
+  }
+  function power(){
+    var a=atom();
+    if(isOp('^')){
+      p++; var t=tk[p];
+      if(!t||t.k!=='num') throw new Error('После ^ нужна степень, например ^2');
+      p++; a=pw(a,parseInt(t.v,10));
+    }
+    return a;
+  }
+  function atom(){
+    var t=tk[p];
+    if(!t) throw new Error('Формула оборвалась');
+    if(t.k==='num'){ p++; return N(t.v); }
+    if(t.k==='id'){ p++; return Vv(t.n,t.s); }
+    if(t.k==='fn'){
+      p++; if(!isOp('(')) throw new Error('После sqrt нужна скобка');
+      p++; var e=expr(); if(!isOp(')')) throw new Error('Не хватает «)»'); p++;
+      return rt(t.v==='sqrt'?2:3,e);
+    }
+    if(isOp('(')){ p++; var e2=expr(); if(!isOp(')')) throw new Error('Не хватает «)»'); p++; return e2; }
+    throw new Error('Неожиданный символ «'+(t.v||t.n)+'»');
+  }
+  var L=expr();
+  if(!isOp('=')) throw new Error('В формуле должен быть знак «=»');
+  p++;
+  var R=expr();
+  if(p<tk.length) throw new Error('Лишние символы в конце формулы');
+  return {L:norm(L),R:norm(R)};
+}
+
+/* ============ правила преобразования ============ */
+function sides(eq,id){
+  var inL=has(eq.L,id), inR=has(eq.R,id);
+  if(inL&&!inR) return {T:'L',O:'R'};
+  if(inR&&!inL) return {T:'R',O:'L'};
+  return null;
+}
+function isDone(eq,id){
+  var s=sides(eq,id);
+  return !!s && eq[s.T].t==='v' && vid(eq[s.T])===id;
+}
+function inv(x){
+  if(x.t==='mul') return norm(mul(x.d.length?x.d:[N(1)],x.n));
+  return norm(mul([N(1)],[x]));
+}
+function negate(x){
+  if(x.t==='add') return norm(add(x.a.map(function(it){ return {sg:-it.sg,e:it.e}; })));
+  return norm(add([{sg:-1,e:x}]));
+}
+function applyMove(eq,id,mv){
+  if(mv.k==='flip') return {L:inv(eq.L),R:inv(eq.R)};
+  var ts=mv.ts, os=ts==='L'?'R':'L', T=eq[ts], O=eq[os], nT, nO, i=mv.i;
+  switch(mv.k){
+    case 'term': {
+      var it=T.a[i], rest=T.a.filter(function(_,k){ return k!==i; });
+      nT=norm(add(rest));
+      var oa=O.t==='add'?O.a.slice():[{sg:1,e:O}];
+      oa.push({sg:-it.sg,e:it.e});
+      nO=norm(add(oa));
+      break;
+    }
+    case 'neg': nT=T.a[0].e; nO=negate(O); break;
+    case 'num': {
+      var f=T.n[i];
+      nT=norm(mul(T.n.filter(function(_,k){ return k!==i; }),T.d));
+      nO=norm(mul([O],[f]));
+      break;
+    }
+    case 'den': {
+      var g=T.d[i];
+      nT=norm(mul(T.n,T.d.filter(function(_,k){ return k!==i; })));
+      nO=norm(mul([O,g],[]));
+      break;
+    }
+    case 'pow': nT=T.b; nO=norm(rt(T.p,O)); break;
+    case 'root': nT=T.e; nO=norm(pw(O,T.k)); break;
+  }
+  var res={}; res[ts]=nT; res[os]=nO; return res;
+}
+/* следующий разумный ход (для подсказки и для проверки движка) */
+function nextMove(eq,id){
+  var s=sides(eq,id); if(!s) return null;
+  var T=eq[s.T], ts=s.T, i;
+  if(T.t==='v') return null;
+  if(T.t==='add'){
+    if(T.a.length===1) return {k:'neg',i:0,ts:ts};
+    for(i=0;i<T.a.length;i++) if(!has(T.a[i].e,id)) return {k:'term',i:i,ts:ts};
+    return null;
+  }
+  if(T.t==='mul'){
+    if(T.n.length===1 && isOne(T.n[0]) && T.d.length===1 && has(T.d[0],id)) return {k:'flip',ts:ts};
+    for(i=0;i<T.d.length;i++) if(has(T.d[i],id)) return {k:'den',i:i,ts:ts};
+    if(T.d.length) return {k:'den',i:0,ts:ts};
+    for(i=0;i<T.n.length;i++) if(!has(T.n[i],id)) return {k:'num',i:i,ts:ts};
+    return null;
+  }
+  if(T.t==='pow') return {k:'pow',ts:ts};
+  if(T.t==='root') return {k:'root',ts:ts};
+  return null;
+}
+
+/* ============ вывод формул ============ */
+var TG=null;
+function vhtml(x){
+  var h='<i>'+x.n+'</i>'; if(x.s) h+='<sub>'+x.s+'</sub>';
+  return '<span class="vr'+(vid(x)===TG?' tg':'')+'">'+h+'</span>';
+}
+function par(h){ return '<span class="par">(</span>'+h+'<span class="par">)</span>'; }
+function dotBetween(prev,cur){
+  if(prev.t==='n' && /^\d/.test(prev.v) && (cur.t==='add'||cur.t==='root'||(cur.t==='n'&&cur.v==='π'))) return '';
+  return '<span class="dot">·</span>';
+}
+function R(x,prec){
+  switch(x.t){
+    case 'n': return '<span class="nm">'+x.v+'</span>';
+    case 'v': return vhtml(x);
+    case 'add': { var h=addInner(x.a,null); return prec>=1?par(h):h; }
+    case 'mul': { var f=frac(x,null); return (prec>=2)?par(f):f; }
+    case 'pow': return R(x.b,2)+'<sup>'+x.p+'</sup>';
+    case 'root': return radical(x);
+  }
+  return '';
+}
+function radical(x){
+  return '<span class="rad">'+(x.k===3?'<span class="ridx">3</span>':'')+'<span class="rs">√</span><span class="rin">'+R(x.e,0)+'</span></span>';
+}
+function tap(k,i,h){ return '<span class="tap" data-k="'+k+'" data-i="'+i+'">'+h+'</span>'; }
+function addInner(a,tapKind){
+  var h='';
+  a.forEach(function(it,i){
+    var sign=i===0?(it.sg<0?'−':''):(it.sg<0?'&nbsp;−&nbsp;':'&nbsp;+&nbsp;');
+    var inner=sign+R(it.e,0);
+    h+=tapKind?tap(tapKind,i,inner):inner;
+  });
+  return h;
+}
+function frac(x,tapOn){
+  var nh,dh;
+  function part(list,kind){
+    if(list.length===1){
+      var one=R(list[0],list[0].t==='add'?0:1);
+      return tapOn?tap(kind,0,one):one;
+    }
+    var h='';
+    list.forEach(function(f,i){
+      var piece=R(f,1);
+      if(tapOn) piece=tap(kind,i,piece);
+      h+=(i?dotBetween(list[i-1],f):'')+piece;
+    });
+    return h;
+  }
+  nh=part(x.n,'num');
+  if(!x.d.length) return nh;
+  dh=part(x.d,'den');
+  return '<span class="frac"><span class="fn">'+nh+'</span><span class="fd">'+dh+'</span></span>';
+}
+function iRender(x){
+  if(x.t==='add'){
+    if(x.a.length===1 && x.a[0].sg<0) return tap('neg',0,'−')+R(x.a[0].e,0);
+    return addInner(x.a,'term');
+  }
+  if(x.t==='mul') return frac(x,true);
+  if(x.t==='pow') return tap('pow',0,R(x,0));
+  if(x.t==='root') return tap('root',0,radical(x));
+  return R(x,0);
+}
+function eqHtml(eq,id,tside){
+  TG=id;
+  var l=tside==='L'?iRender(eq.L):R(eq.L,0), r=tside==='R'?iRender(eq.R):R(eq.R,0);
+  return '<div>'+l+'<span class="eq">=</span>'+r+'</div>';
+}
+function eqPlain(eq,id){ TG=id; return R(eq.L,0)+'<span class="eq"> = </span>'+R(eq.R,0); }
+
+/* ============ задачи ============ */
+var LEVELS=[
+ {id:1,name:'Слагаемые',sub:'перенос со сменой знака',list:[
+  {f:'U = U_1 + U_2',name:'Последовательное соединение: напряжение',vars:{U:'общее напряжение',U_1:'напряжение на первом проводнике',U_2:'напряжение на втором проводнике'}},
+  {f:'m = m_1 + m_2',name:'Масса системы тел',vars:{m:'масса системы',m_1:'масса первого тела',m_2:'масса второго тела'}},
+  {f:'I = I_1 + I_2',name:'Параллельное соединение: сила тока',vars:{I:'общая сила тока',I_1:'ток в первой ветви',I_2:'ток во второй ветви'}},
+  {f:'F = F_1 - F_2',name:'Равнодействующая двух противоположных сил',vars:{F:'равнодействующая',F_1:'большая сила',F_2:'меньшая сила'}},
+  {f:'A = E_2 - E_1',name:'Работа и изменение энергии',vars:{A:'работа',E_1:'начальная энергия',E_2:'конечная энергия'}},
+  {f:'l = l_0 + x',name:'Длина растянутой пружины',vars:{l:'длина растянутой пружины',l_0:'длина недеформированной пружины',x:'удлинение'}}
+ ]},
+ {id:2,name:'Множители',sub:'в знаменатель',list:[
+  {f:'F = m*a',name:'Второй закон Ньютона',vars:{F:'сила',m:'масса',a:'ускорение'}},
+  {f:'p = m*v',name:'Импульс тела',vars:{p:'импульс',m:'масса',v:'скорость'}},
+  {f:'U = I*R',name:'Закон Ома для участка цепи',vars:{U:'напряжение',I:'сила тока',R:'сопротивление'}},
+  {f:'s = v*t',name:'Путь при равномерном движении',vars:{s:'путь',v:'скорость',t:'время'}},
+  {f:'A = F*s',name:'Механическая работа',vars:{A:'работа',F:'сила',s:'перемещение'}},
+  {f:'P = U*I',name:'Мощность электрического тока',vars:{P:'мощность',U:'напряжение',I:'сила тока'}},
+  {f:'m = ρ*V',name:'Масса и плотность',vars:{m:'масса',ρ:'плотность',V:'объём'}},
+  {f:'F = k*x',name:'Закон Гука',vars:{F:'сила упругости',k:'жёсткость',x:'удлинение'}},
+  {f:'Q = q*m',name:'Сгорание топлива',vars:{Q:'количество теплоты',q:'удельная теплота сгорания',m:'масса топлива'}},
+  {f:'p = ρ*g*h',name:'Давление столба жидкости',vars:{p:'давление',ρ:'плотность жидкости',g:'ускорение свободного падения',h:'высота столба'}},
+  {f:'F_A = ρ*g*V',name:'Сила Архимеда',vars:{F_A:'сила Архимеда',ρ:'плотность жидкости',g:'ускорение свободного падения',V:'объём погружённой части'}}
+ ]},
+ {id:3,name:'Дроби',sub:'из знаменателя в числитель',list:[
+  {f:'v = s/t',name:'Скорость равномерного движения',vars:{v:'скорость',s:'путь',t:'время'}},
+  {f:'ρ = m/V',name:'Плотность вещества',vars:{ρ:'плотность',m:'масса',V:'объём'}},
+  {f:'I = U/R',name:'Закон Ома для участка цепи',vars:{I:'сила тока',U:'напряжение',R:'сопротивление'}},
+  {f:'a = F/m',name:'Второй закон Ньютона',vars:{a:'ускорение',F:'сила',m:'масса'}},
+  {f:'N = A/t',name:'Мощность',vars:{N:'мощность',A:'работа',t:'время'}},
+  {f:'p = F/S',name:'Давление твёрдого тела',vars:{p:'давление',F:'сила давления',S:'площадь опоры'}},
+  {f:'n = c/v',name:'Показатель преломления',vars:{n:'показатель преломления',c:'скорость света в вакууме',v:'скорость света в среде'}},
+  {f:'λ = v/ν',name:'Длина волны',vars:{λ:'длина волны',v:'скорость волны',ν:'частота'}}
+ ]},
+ {id:4,name:'Два шага',sub:'слагаемое и множитель',list:[
+  {f:'v = v_0 + a*t',name:'Скорость при равноускоренном движении',vars:{v:'конечная скорость',v_0:'начальная скорость',a:'ускорение',t:'время'}},
+  {f:'s = s_0 + v*t',name:'Координата при равномерном движении',vars:{s:'конечная координата',s_0:'начальная координата',v:'скорость',t:'время'}},
+  {f:'U = E - I*r',name:'Напряжение на зажимах источника',vars:{U:'напряжение на зажимах',E:'ЭДС источника',I:'сила тока',r:'внутреннее сопротивление'}},
+  {f:'p = p_0 + F*t',name:'Изменение импульса под действием силы',vars:{p:'конечный импульс',p_0:'начальный импульс',F:'сила',t:'время действия силы'}},
+  {f:'Q = c*m*(t_2 - t_1)',name:'Нагревание тела',vars:{Q:'количество теплоты',c:'удельная теплоёмкость',m:'масса',t_1:'начальная температура',t_2:'конечная температура'}},
+  {f:'R = ρ*l/S',name:'Сопротивление проводника',vars:{R:'сопротивление',ρ:'удельное сопротивление',l:'длина проводника',S:'площадь сечения'}},
+  {f:'P = m*(g + a)',name:'Вес тела при подъёме с ускорением',vars:{P:'вес тела',m:'масса',g:'ускорение свободного падения',a:'ускорение подъёма'}},
+  {f:'p*V = ν*R*T',name:'Уравнение состояния идеального газа',vars:{p:'давление',V:'объём',ν:'количество вещества',R:'газовая постоянная',T:'температура'}}
+ ]},
+ {id:5,name:'Степени и корни',sub:'квадрат, корень',list:[
+  {f:'E = m*v^2/2',name:'Кинетическая энергия',vars:{E:'кинетическая энергия',m:'масса',v:'скорость'}},
+  {f:'a = v^2/R',name:'Центростремительное ускорение',vars:{a:'ускорение',v:'скорость',R:'радиус окружности'}},
+  {f:'h = g*t^2/2',name:'Свободное падение',vars:{h:'высота',g:'ускорение свободного падения',t:'время падения'}},
+  {f:'E_p = k*x^2/2',name:'Энергия упругой деформации',vars:{E_p:'потенциальная энергия',k:'жёсткость',x:'удлинение'}},
+  {f:'Q = I^2*R*t',name:'Закон Джоуля — Ленца',vars:{Q:'количество теплоты',I:'сила тока',R:'сопротивление',t:'время'}},
+  {f:'F = G*m_1*m_2/r^2',name:'Закон всемирного тяготения',vars:{F:'сила притяжения',G:'гравитационная постоянная',m_1:'масса первого тела',m_2:'масса второго тела',r:'расстояние между телами'}},
+  {f:'v = sqrt(2*g*h)',name:'Скорость при падении с высоты',vars:{v:'скорость',g:'ускорение свободного падения',h:'высота'}},
+  {f:'T = 2*π*sqrt(l/g)',name:'Период математического маятника',vars:{T:'период',l:'длина нити',g:'ускорение свободного падения'}}
+ ]},
+ {id:6,name:'Сложные',sub:'несколько действий',list:[
+  {f:'1/F = 1/d + 1/f',name:'Формула тонкой линзы',vars:{F:'фокусное расстояние',d:'расстояние от предмета до линзы',f:'расстояние от линзы до изображения'}},
+  {f:'1/R = 1/R_1 + 1/R_2',name:'Параллельное соединение резисторов',vars:{R:'общее сопротивление',R_1:'сопротивление первого',R_2:'сопротивление второго'}},
+  {f:'I = E/(R + r)',name:'Закон Ома для полной цепи',vars:{I:'сила тока',E:'ЭДС источника',R:'внешнее сопротивление',r:'внутреннее сопротивление'}},
+  {f:'v = (s_1 + s_2)/(t_1 + t_2)',name:'Средняя скорость',vars:{v:'средняя скорость',s_1:'первый участок пути',s_2:'второй участок пути',t_1:'время на первом участке',t_2:'время на втором участке'}},
+  {f:'a = (v - v_0)/t',name:'Ускорение',vars:{a:'ускорение',v:'конечная скорость',v_0:'начальная скорость',t:'время'}},
+  {f:'E = m*v_0^2/2 + m*g*h',name:'Полная механическая энергия',vars:{E:'полная энергия',m:'масса',v_0:'начальная скорость',g:'ускорение свободного падения',h:'высота'}}
+ ]}
+];
+function varKey(id){ var p=id.split('|'); return p[0]+(p[1]?'_'+p[1]:''); }
+LEVELS.forEach(function(L){
+  L.tasks=[];
+  L.list.forEach(function(F){
+    var eq=parse(F.f);
+    collect(eq.L,[]).concat(collect(eq.R,[])).filter(function(v,i,a){ return a.indexOf(v)===i; }).forEach(function(id){
+      if(isDone(eq,id) || cnt(eq.L,id)+cnt(eq.R,id)!==1) return;
+      L.tasks.push({lvl:L.id,f:F.f,name:F.name,vars:F.vars,id:id,eq:eq,uid:F.f+'|'+id});
+    });
+  });
+});
+
+/* ============ состояние и интерфейс ============ */
+function $(i){ return document.getElementById(i); }
+var cur=null, hist=[], errors=0, hints=0, finished=false, selected=null, lvl=1, saved={solved:{}};
+try{ var raw=localStorage.getItem('vyrazi_v1'); if(raw) saved=JSON.parse(raw)||saved; }catch(e){}
+function save(){ try{ localStorage.setItem('vyrazi_v1',JSON.stringify(saved)); }catch(e){} }
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function curEq(){ return hist[hist.length-1].eq; }
+
+function drawChips(){
+  var h='';
+  LEVELS.forEach(function(L){
+    var done=L.tasks.filter(function(t){ return saved.solved[t.uid]; }).length;
+    h+='<button class="chip'+(lvl===L.id?' on':'')+'" data-l="'+L.id+'">'+L.id+'. '+L.name+'<small>'+L.sub+' · '+done+'/'+L.tasks.length+'</small></button>';
+  });
+  h+='<button class="chip'+(lvl==='c'?' on':'')+'" data-l="c">✎ Свой пример<small>введите формулу</small></button>';
+  $('chips').innerHTML=h;
+}
+function pickTask(){
+  var L=LEVELS[lvl-1];
+  var fresh=L.tasks.filter(function(t){ return !saved.solved[t.uid] && (!cur||t.uid!==cur.uid); });
+  var pool=fresh.length?fresh:L.tasks.filter(function(t){ return !cur||t.uid!==cur.uid; });
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function stars(){ var bad=errors+hints; return bad===0?'★★★':(bad<=2?'★★☆':'★☆☆'); }
+
+function startTask(t){
+  cur=t; hist=[{desc:'Дано',eq:t.eq}]; errors=0; hints=0; finished=false; selected=null;
+  $('done').classList.remove('show'); hideOpts(); hideFb();
+  TG=t.id;
+  var h='';
+  if(t.name) h+='<span class="nm0">'+t.name+'</span>';
+  h+='Выразите '+vhtml(Vv(t.id.split('|')[0],t.id.split('|')[1]))+(t.vars&&t.vars[varKey(t.id)]?' ('+t.vars[varKey(t.id)]+')':'')+' из формулы.';
+  if(t.vars){
+    h+='<ul class="legend">';
+    Object.keys(t.vars).forEach(function(k){
+      var p=k.split('_'); h+='<li><b>'+vhtml(Vv(p[0],p[1]||''))+'</b> — '+t.vars[k]+'</li>';
+    });
+    h+='</ul>';
+  }
+  $('task').innerHTML=h;
+  render();
+}
+function render(){
+  var eq=curEq(), s=sides(eq,cur.id);
+  $('eqbox').innerHTML=eqHtml(eq,cur.id,s?s.T:'L');
+  $('eqbox').classList.toggle('locked',finished);
+  $('bUndo').disabled=hist.length<2;
+  $('bFlip').disabled=finished;
+  $('bFlip').style.display=(hasFrac(eq.L)||hasFrac(eq.R))?'':'none';
+  $('bHint').disabled=finished;
+  $('bFlip').classList.remove('hint');
+  drawHist();
+  $('stat').textContent='Ошибок в этом примере: '+errors+' · подсказок: '+hints;
+  drawChips();
+}
+function drawHist(){
+  var h='<h3>Ход решения</h3>';
+  hist.forEach(function(it,i){
+    h+='<div class="step">'+(i===0?'Дано':'Шаг '+i+': '+it.desc)+'<span class="se">'+eqPlain(it.eq,cur.id)+'</span></div>';
+  });
+  $('hist').innerHTML=hist.length>1||true?h:'';
+}
+function hideOpts(){ selected=null; $('opts').classList.remove('show'); $('opts').innerHTML=''; }
+function hideFb(){ $('fb').className='fb'; $('fb').innerHTML=''; }
+function fb(cls,html){ $('fb').className='fb show '+cls; $('fb').innerHTML=html; }
+
+function elemHtml(k,i,T){
+  if(k==='term'){ var it=T.a[i]; return (it.sg<0?'−':'+')+R(it.e,0); }
+  if(k==='num') return R(T.n[i],1);
+  if(k==='den') return R(T.d[i],1);
+  if(k==='pow') return R(T,0);
+  if(k==='root') return radical(T);
+  if(k==='neg') return '−';
+  return '';
+}
+function optionsFor(k,T,i){
+  var o=[];
+  if(k==='term') o=[
+    {t:'Перенести в другую часть, поменяв знак на противоположный',ok:true},
+    {t:'Перенести в другую часть, оставив знак',why:'Знак слагаемого при переносе через «=» меняется на противоположный.'},
+    {t:'Разделить обе части на это слагаемое',why:'Слагаемое убирают сложением или вычитанием, а не делением.'}];
+  if(k==='num') o=[
+    {t:'Перенести в знаменатель другой части (разделить обе части)',ok:true},
+    {t:'Перенести в числитель другой части (умножить обе части)',why:'Множитель стоит в числителе. Он исчезнет, если обе части разделить на него: он уйдёт в знаменатель другой части.'},
+    {t:'Перенести в другую часть, поменяв знак',why:'Знак меняют только у слагаемых. Множитель переносят в знаменатель.'}];
+  if(k==='den') o=[
+    {t:'Перенести в числитель другой части (умножить обе части)',ok:true},
+    {t:'Перенести в знаменатель другой части (разделить обе части)',why:'Множитель стоит в знаменателе. Он исчезнет, если обе части умножить на него: он уйдёт в числитель другой части.'},
+    {t:'Перенести в другую часть, поменяв знак',why:'Знак меняют только у слагаемых. Множитель из знаменателя переносят в числитель.'}];
+  if(k==='pow') o=[
+    {t:T.p===2?'Извлечь квадратный корень из обеих частей':'Извлечь корень степени '+T.p+' из обеих частей',ok:true},
+    {t:'Разделить обе части на '+T.p,why:'Степень убирают обратным действием, то есть извлечением корня. Деление на показатель степени неверно.'},
+    {t:T.p===2?'Возвести обе части в квадрат':'Возвести обе части в степень '+T.p,why:'Так степень только увеличится. Чтобы её убрать, нужно извлечь корень.'}];
+  if(k==='root') o=[
+    {t:T.k===2?'Возвести обе части в квадрат':'Возвести обе части в степень '+T.k,ok:true},
+    {t:'Извлечь корень из обеих частей',why:'Корень убирают обратным действием: возведением в степень.'},
+    {t:'Умножить обе части на '+T.k,why:'Корень убирают возведением в степень, а не умножением.'}];
+  if(k==='neg') o=[
+    {t:'Поменять знаки у обеих частей (умножить на −1)',ok:true},
+    {t:'Просто убрать минус у этой части',why:'Так равенство нарушится: знаки нужно менять у обеих частей.'},
+    {t:'Перенести минус в знаменатель',why:'Минус перед величиной убирают умножением обеих частей на −1.'}];
+  return shuffle(o);
+}
+function stepText(mv,T){
+  var e=elemHtml(mv.k,mv.i,T);
+  switch(mv.k){
+    case 'term': return 'слагаемое «'+e+'» перенесли в другую часть с противоположным знаком';
+    case 'num': return 'множитель «'+e+'» перенесли в знаменатель другой части';
+    case 'den': return 'множитель «'+e+'» перенесли в числитель другой части';
+    case 'pow': return T.p===2?'извлекли квадратный корень из обеих частей':'извлекли корень степени '+T.p+' из обеих частей';
+    case 'root': return T.k===2?'возвели обе части в квадрат':(T.k===3?'возвели обе части в куб':'возвели обе части в степень '+T.k);
+    case 'neg': return 'поменяли знаки у обеих частей';
+    case 'flip': return 'перевернули обе части равенства';
+  }
+  return '';
+}
+function onTap(el){
+  if(finished) return;
+  var k=el.getAttribute('data-k'), i=+el.getAttribute('data-i');
+  var eq=curEq(), s=sides(eq,cur.id); if(!s) return;
+  var T=eq[s.T], id=cur.id;
+  hideFb();
+  /* то, что содержит искомую величину, трогать не нужно */
+  var touchesTarget=false;
+  if(k==='term') touchesTarget=has(T.a[i].e,id);
+  if(k==='num') touchesTarget=has(T.n[i],id);
+  if(k==='pow'||k==='root') touchesTarget=false;
+  if(touchesTarget){
+    selected=null; hideOpts();
+    fb('info','Это выражение содержит искомую величину, её нужно оставить. Уберите то, что стоит рядом с ней.');
+    return;
+  }
+  selected={k:k,i:i,ts:s.T};
+  [].forEach.call(document.querySelectorAll('.tap.sel'),function(n){ n.classList.remove('sel'); });
+  el.classList.add('sel');
+  var opts=optionsFor(k,T,i), h='<h3>Что сделать с <span>'+elemHtml(k,i,T)+'</span> ?</h3>';
+  opts.forEach(function(o,n){ h+='<button class="opt" data-n="'+n+'">'+o.t+'</button>'; });
+  $('opts').innerHTML=h; $('opts').classList.add('show');
+  $('opts')._o=opts; $('opts')._mv={k:k,i:i,ts:s.T};
+  try{ $('opts').scrollIntoView({block:'nearest',behavior:'smooth'}); }catch(e){}
+}
+function commit(mv,eqBefore){
+  var T=mv.ts?eqBefore[mv.ts]:null;
+  var desc=stepText(mv,T);
+  var eq=applyMove(eqBefore,cur.id,mv);
+  hist.push({desc:desc,eq:eq});
+  hideOpts();
+  if(isDone(eq,cur.id)) finish(); else render();
+}
+function finish(){
+  /* записываем ответ в привычном виде: искомая величина слева */
+  var eq=curEq(), s=sides(eq,cur.id);
+  if(s.T==='R'){ hist.push({desc:'записали ответ, поменяв части равенства местами',eq:{L:eq.R,R:eq.L}}); }
+  finished=true; render();
+  saved.solved[cur.uid]=1; save(); drawChips();
+  var st=stars();
+  $('stars').textContent=st;
+  $('doneTxt').innerHTML='Верно! '+(errors+hints===0?'Без ошибок и подсказок.':'Ошибок: '+errors+', подсказок: '+hints+'.');
+  $('done').classList.add('show');
+  try{ $('done').scrollIntoView({block:'nearest',behavior:'smooth'}); }catch(e){}
+}
+$('opts').addEventListener('click',function(e){
+  var b=e.target.closest('.opt'); if(!b||finished) return;
+  var o=$('opts')._o[+b.getAttribute('data-n')], mv=$('opts')._mv;
+  if(o.ok){ fb('ok','Верно!'); commit(mv,curEq()); }
+  else { errors++; fb('bad','<b>Не так.</b> '+o.why); $('stat').textContent='Ошибок в этом примере: '+errors+' · подсказок: '+hints; }
+});
+$('eqbox').addEventListener('click',function(e){ var t=e.target.closest('.tap'); if(t) onTap(t); });
+$('bUndo').addEventListener('click',function(){
+  if(hist.length<2) return;
+  if(finished){ finished=false; $('done').classList.remove('show'); if(hist[hist.length-1].desc.indexOf('записали ответ')===0) hist.pop(); }
+  hist.pop(); hideOpts(); hideFb(); render();
+});
+$('bFlip').addEventListener('click',function(){
+  if(finished) return;
+  var eq=curEq(), s=sides(eq,cur.id), T=eq[s.T];
+  hideFb(); hideOpts();
+  if(T.t==='mul' && T.d.some(function(f){ return has(f,cur.id); })){
+    fb('ok','Верно!'); commit({k:'flip'},eq);
+  } else {
+    errors++; fb('bad','<b>Пока рано.</b> Дробь переворачивают, когда искомая величина стоит в знаменателе.');
+    $('stat').textContent='Ошибок в этом примере: '+errors+' · подсказок: '+hints;
+  }
+});
+$('bHint').addEventListener('click',function(){
+  if(finished) return;
+  var eq=curEq(), mv=nextMove(eq,cur.id); if(!mv) return;
+  hints++; hideOpts(); hideFb();
+  render();
+  var sel;
+  if(mv.k==='flip'){ $('bFlip').classList.add('hint'); fb('info','Искомая величина стоит в знаменателе. Попробуйте перевернуть обе части равенства.'); }
+  else {
+    sel=(mv.k==='pow'||mv.k==='root'||mv.k==='neg')?'.tap[data-k="'+mv.k+'"]':'.tap[data-k="'+mv.k+'"][data-i="'+mv.i+'"]';
+    var el=document.querySelector('#eqbox '+sel); if(el) el.classList.add('hint');
+    fb('info','Нажмите на подсвеченную часть: её нужно убрать оттуда, где стоит искомая величина.');
+  }
+  $('stat').textContent='Ошибок в этом примере: '+errors+' · подсказок: '+hints;
+});
+$('bNext').addEventListener('click',function(){
+  if(lvl==='c'){ $('done').classList.remove('show'); $('cF').focus(); return; }
+  startTask(pickTask());
+});
+$('chips').addEventListener('click',function(e){
+  var c=e.target.closest('.chip'); if(!c) return;
+  var l=c.getAttribute('data-l');
+  if(l==='c'){ lvl='c'; $('custom').classList.add('show'); drawChips(); $('cF').focus(); return; }
+  lvl=+l; $('custom').classList.remove('show'); cur=null; startTask(pickTask());
+});
+/* свой пример */
+function fillTargets(){
+  try{
+    var eq=parse($('cF').value), ids=collect(eq.L,[]).concat(collect(eq.R,[])).filter(function(v,i,a){ return a.indexOf(v)===i; });
+    $('cT').innerHTML=ids.map(function(id){ var p=id.split('|'); return '<option value="'+id+'">Выразить '+p[0]+(p[1]?'_'+p[1]:'')+'</option>'; }).join('');
+    return true;
+  }catch(e){ $('cT').innerHTML=''; return false; }
+}
+$('cF').addEventListener('input',fillTargets);
+$('cGo').addEventListener('click',function(){
+  try{
+    var eq=parse($('cF').value);
+    if(!$('cT').value && !fillTargets()) throw new Error('Проверьте формулу');
+    var id=$('cT').value;
+    if(!id) throw new Error('В формуле нет переменных');
+    if(!sides(eq,id) || cnt(eq.L,id)+cnt(eq.R,id)!==1) throw new Error('Искомая величина должна входить в формулу один раз');
+    if(isDone(eq,id)) throw new Error('Эта величина уже выражена. Выберите другую');
+    $('custom').classList.remove('show');
+    startTask({lvl:'c',f:$('cF').value,name:'Свой пример',vars:null,id:id,eq:eq,uid:'c|'+$('cF').value+'|'+id});
+  }catch(err){ fb('bad',err.message); }
+});
+
+/* для проверки в тестах */
+window.__t={LEVELS:LEVELS,parse:parse,nextMove:nextMove,applyMove:applyMove,isDone:isDone,sides:sides,ev:ev,collect:collect,
+  eqPlain:function(eq,id){ return eqPlain(eq,id); }};
+
+drawChips();
+startTask(pickTask());
+})();
+</script>
+</body>
+</html>
