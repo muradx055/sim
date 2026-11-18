@@ -1,0 +1,77 @@
+name: Сборка «Помощник по 1С»
+
+on:
+  push:
+    paths:
+      - "1c-helper/**"
+      - ".github/workflows/build-1c-helper.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: 1c-helper
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Установка зависимостей
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest pyinstaller
+
+      - name: Тесты словаря и логики
+        run: python -m pytest -q tests
+
+      - name: Сборка exe
+        run: >
+          pyinstaller --noconfirm --onefile --windowed --name Helper1C
+          --icon icon.ico
+          --add-data "hints_1c.json;." --add-data "icon.ico;."
+          --collect-all uiautomation --collect-all comtypes --collect-all winocr
+          --collect-all winrt.runtime
+          --collect-all winrt.windows.foundation --collect-all winrt.windows.foundation.collections
+          --collect-all winrt.windows.globalization --collect-all winrt.windows.graphics.imaging
+          --collect-all winrt.windows.media.ocr --collect-all winrt.windows.storage.streams
+          helper.py
+
+      - name: Проверка собранного exe (окно, подсказка, UI Automation, OCR)
+        run: |
+          Copy-Item hints_1c.json dist/hints_1c.json
+          Copy-Item dist/Helper1C.exe dist/selftest.exe
+          $p = Start-Process -FilePath dist/selftest.exe -ArgumentList "--selftest" -PassThru
+          if (-not $p.WaitForExit(90000)) { $p.Kill(); Write-Error "selftest завис" }
+          if (Test-Path dist/selftest.log) { Get-Content dist/selftest.log }
+          if ($p.ExitCode -ne 0) { Write-Error "selftest завершился с кодом $($p.ExitCode)" }
+          Remove-Item dist/selftest.exe, dist/selftest.log, dist/settings.json -ErrorAction SilentlyContinue
+
+      - name: Упаковка
+        run: |
+          New-Item -ItemType Directory -Force release/pack | Out-Null
+          Copy-Item dist/Helper1C.exe "release/pack/Помощник по 1С.exe"
+          Copy-Item hints_1c.json release/pack/
+          Copy-Item README.md "release/pack/КАК ПОЛЬЗОВАТЬСЯ.md"
+          Compress-Archive -Path release/pack/* -DestinationPath release/Pomoshnik-1C.zip -Force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Pomoshnik-1C
+          path: 1c-helper/release/Pomoshnik-1C.zip
+
+      - name: Публикация в «Releases»
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: helper-latest
+          name: Помощник по 1С — последняя сборка
+          body: "Скачайте Pomoshnik-1C.zip, распакуйте и запустите «Помощник по 1С.exe». Инструкция внутри архива."
+          files: 1c-helper/release/Pomoshnik-1C.zip
+          target_commitish: ${{ github.sha }}
