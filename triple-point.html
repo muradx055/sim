@@ -238,18 +238,28 @@ function setState(T,p,mode,forced,preset){
 sT.addEventListener('input',function(){ setState(parseFloat(sT.value),S.p,'T'); });
 sP.addEventListener('input',function(){ setState(S.T,Math.pow(10,parseFloat(sP.value)),'p'); });
 sS.addEventListener('input',function(){ S.spd=parseFloat(sS.value); vS.textContent='×'+S.spd.toFixed(1).replace('.',','); });
-/* «тугие» ползунки: палец сдвигает значение в GAIN раз медленнее, отсчёт от текущего значения */
-var GAIN=0.5;
+/* «тугие» ползунки.
+   Палец (touch): значение сдвигается в GAIN раз медленнее, отсчёт от текущего значения.
+   Мышь (ПК): шарик точно следует за стрелкой (1:1) — без отставания. */
+var GAIN=0.5, THUMB=20;
 function fine(grab,input,getV,apply){
-  var on=false,x0=0,v0=0;
+  var on=false,x0=0,v0=0,mouse=false,off=0;
+  function valAt(x,r,mn,mx){ return clamp(mn+(x-r.left-THUMB/2)/Math.max(1,r.width-THUMB)*(mx-mn),mn,mx); }
   grab.addEventListener('pointerdown',function(e){
-    on=true; x0=e.clientX; v0=getV();
+    on=true; mouse=(e.pointerType==='mouse');
     try{grab.setPointerCapture(e.pointerId);}catch(_){}
+    var r=input.getBoundingClientRect(), mn=parseFloat(input.min), mx=parseFloat(input.max);
+    if(mouse){
+      var c=r.left+THUMB/2+(getV()-mn)/(mx-mn)*(r.width-THUMB);
+      off=(Math.abs(e.clientX-c)<=THUMB/2+2)?(c-e.clientX):0; /* схватили шарик — без скачка; иначе шарик прыгает под стрелку */
+      apply(valAt(e.clientX+off,r,mn,mx));
+    } else { x0=e.clientX; v0=getV(); }
   });
   grab.addEventListener('pointermove',function(e){
     if(!on) return;
-    var w=input.getBoundingClientRect().width||300, mn=parseFloat(input.min), mx=parseFloat(input.max);
-    apply(clamp(v0+(e.clientX-x0)/w*(mx-mn)*GAIN,mn,mx));
+    var r=input.getBoundingClientRect(), mn=parseFloat(input.min), mx=parseFloat(input.max);
+    if(mouse) apply(valAt(e.clientX+off,r,mn,mx));
+    else apply(clamp(v0+(e.clientX-x0)/(r.width||300)*(mx-mn)*GAIN,mn,mx));
   });
   grab.addEventListener('pointerup',function(){ on=false; });
   grab.addEventListener('pointercancel',function(){ on=false; });
